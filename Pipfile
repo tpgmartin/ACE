@@ -9,10 +9,10 @@ verify_ssl = true
 numpy = "*"
 sklearn = "*"
 tcav = "*"
-tensorflow = "*"
 matplotlib = "*"
 pillow = "*"
 scikit-image = "*"
+tensorflow = "~=1.14"
 
 [requires]
 python_version = "3.7"

@@ -1,5 +1,7 @@
 # Other
 .DS_Store
+ImageNet
+ACE
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
