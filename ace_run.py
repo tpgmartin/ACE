@@ -50,6 +50,10 @@ def main(args):
       num_discovery_imgs=args.max_imgs,
       num_workers=args.num_parallel_workers)
   # Creating the dataset of image patches
+  print('ACE RUN')
+  predictions = cd.predict()
+  print(predictions)
+  sdfsdfsdf
   cd.create_patches(param_dict={'n_segments': [15, 50, 80]})
   # Saving the concept discovery target class images
   image_dir = os.path.join(discovered_concepts_dir, 'images')
@@ -89,7 +93,7 @@ def parse_arguments(argv):
   parser.add_argument('--labels_path', type=str,
       help='Path to model checkpoints.', default='./imagenet_labels.txt')
   parser.add_argument('--target_class', type=str,
-      help='The name of the target class to be interpreted', default='zebra')
+      help='The name of the target class to be interpreted', default='dumbbell')
   parser.add_argument('--bottlenecks', type=str,
       help='Names of the target layers of the network (comma separated)',
                       default='mixed4c')

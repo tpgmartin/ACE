@@ -536,6 +536,17 @@ class ConceptDiscovery(object):
         accs.append(self._calculate_cav(concept, rnd, bn, activations, ow))
     return accs
 
+  def predict(self, discovery_images=None):
+
+    if discovery_images is None:
+      raw_imgs = self.load_concept_imgs(
+          self.target_class, self.num_discovery_imgs)
+      self.discovery_images = raw_imgs
+    
+    preds = get_predictions_for_images(self.discovery_images, self.model)
+
+    return preds
+
   def cavs(self, min_acc=0., ow=True):
     """Calculates cavs for all discovered concepts.
 
