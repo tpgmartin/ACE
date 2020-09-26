@@ -125,6 +125,9 @@ class ConceptDiscovery(object):
         shape=(self.image_shape),
         num_workers=self.num_workers)
 
+
+  # Process heatmap images - only want to crop and resize images like
+  # `./net_occlusion_heatmaps_delta_prob/n09229709/n09229709_28418/mask_dim_100/n09229709_28418_image_cropped_to_mask/n09229709_28418_image_cropped_to_mask.JPEG`
   def create_patches(self, method='slic', discovery_images=None,
                      param_dict=None):
     """Creates a set of image patches using superpixel methods.
@@ -196,61 +199,68 @@ class ConceptDiscovery(object):
     """
     if param_dict is None:
       param_dict = {}
-    if method == 'slic':
-      n_segmentss = param_dict.pop('n_segments', [15, 50, 80])
-      n_params = len(n_segmentss)
-      compactnesses = param_dict.pop('compactness', [20] * n_params)
-      sigmas = param_dict.pop('sigma', [1.] * n_params)
-    elif method == 'watershed':
-      markerss = param_dict.pop('marker', [15, 50, 80])
-      n_params = len(markerss)
-      compactnesses = param_dict.pop('compactness', [0.] * n_params)
-    elif method == 'quickshift':
-      max_dists = param_dict.pop('max_dist', [20, 15, 10])
-      n_params = len(max_dists)
-      ratios = param_dict.pop('ratio', [1.0] * n_params)
-      kernel_sizes = param_dict.pop('kernel_size', [10] * n_params)
-    elif method == 'felzenszwalb':
-      scales = param_dict.pop('scale', [1200, 500, 250])
-      n_params = len(scales)
-      sigmas = param_dict.pop('sigma', [0.8] * n_params)
-      min_sizes = param_dict.pop('min_size', [20] * n_params)
-    else:
-      raise ValueError('Invalid superpixel method!')
-    unique_masks = []
-    for i in range(n_params):
-      param_masks = []
-      if method == 'slic':
-        segments = segmentation.slic(
-            img, n_segments=n_segmentss[i], compactness=compactnesses[i],
-            sigma=sigmas[i])
-      elif method == 'watershed':
-        segments = segmentation.watershed(
-            img, markers=markerss[i], compactness=compactnesses[i])
-      elif method == 'quickshift':
-        segments = segmentation.quickshift(
-            img, kernel_size=kernel_sizes[i], max_dist=max_dists[i],
-            ratio=ratios[i])
-      elif method == 'felzenszwalb':
-        segments = segmentation.felzenszwalb(
-            img, scale=scales[i], sigma=sigmas[i], min_size=min_sizes[i])
-      for s in range(segments.max()):
-        mask = (segments == s).astype(float)
-        if np.mean(mask) > 0.001:
-          unique = True
-          for seen_mask in unique_masks:
-            jaccard = np.sum(seen_mask * mask) / np.sum((seen_mask + mask) > 0)
-            if jaccard > 0.5:
-              unique = False
-              break
-          if unique:
-            param_masks.append(mask)
-      unique_masks.extend(param_masks)
-    superpixels, patches = [], []
-    while unique_masks:
-      superpixel, patch = self._extract_patch(img, unique_masks.pop())
+
+    if method is None:
+      superpixels, patches = [], []
+      superpixel, patch = self._extract_patch(img, None)
       superpixels.append(superpixel)
       patches.append(patch)
+    else:
+      if method == 'slic':
+        n_segmentss = param_dict.pop('n_segments', [15, 50, 80])
+        n_params = len(n_segmentss)
+        compactnesses = param_dict.pop('compactness', [20] * n_params)
+        sigmas = param_dict.pop('sigma', [1.] * n_params)
+      elif method == 'watershed':
+        markerss = param_dict.pop('marker', [15, 50, 80])
+        n_params = len(markerss)
+        compactnesses = param_dict.pop('compactness', [0.] * n_params)
+      elif method == 'quickshift':
+        max_dists = param_dict.pop('max_dist', [20, 15, 10])
+        n_params = len(max_dists)
+        ratios = param_dict.pop('ratio', [1.0] * n_params)
+        kernel_sizes = param_dict.pop('kernel_size', [10] * n_params)
+      elif method == 'felzenszwalb':
+        scales = param_dict.pop('scale', [1200, 500, 250])
+        n_params = len(scales)
+        sigmas = param_dict.pop('sigma', [0.8] * n_params)
+        min_sizes = param_dict.pop('min_size', [20] * n_params)
+      else:
+        raise ValueError('Invalid superpixel method!')
+      unique_masks = []
+      for i in range(n_params):
+        param_masks = []
+        if method == 'slic':
+          segments = segmentation.slic(
+              img, n_segments=n_segmentss[i], compactness=compactnesses[i],
+              sigma=sigmas[i])
+        elif method == 'watershed':
+          segments = segmentation.watershed(
+              img, markers=markerss[i], compactness=compactnesses[i])
+        elif method == 'quickshift':
+          segments = segmentation.quickshift(
+              img, kernel_size=kernel_sizes[i], max_dist=max_dists[i],
+              ratio=ratios[i])
+        elif method == 'felzenszwalb':
+          segments = segmentation.felzenszwalb(
+              img, scale=scales[i], sigma=sigmas[i], min_size=min_sizes[i])
+        for s in range(segments.max()):
+          mask = (segments == s).astype(float)
+          if np.mean(mask) > 0.001:
+            unique = True
+            for seen_mask in unique_masks:
+              jaccard = np.sum(seen_mask * mask) / np.sum((seen_mask + mask) > 0)
+              if jaccard > 0.5:
+                unique = False
+                break
+            if unique:
+              param_masks.append(mask)
+        unique_masks.extend(param_masks)
+      superpixels, patches = [], []
+      while unique_masks:
+        superpixel, patch = self._extract_patch(img, unique_masks.pop())
+        superpixels.append(superpixel)
+        patches.append(patch)
     return superpixels, patches
 
   def _extract_patch(self, image, mask):
@@ -265,14 +275,51 @@ class ConceptDiscovery(object):
         image boundaries
       patch: The original patch. Rest of the image is padded with average value
     """
-    mask_expanded = np.expand_dims(mask, -1)
-    patch = (mask_expanded * image + (
-        1 - mask_expanded) * float(self.average_image_value) / 255)
-    ones = np.where(mask == 1)
-    h1, h2, w1, w2 = ones[0].min(), ones[0].max(), ones[1].min(), ones[1].max()
-    image = Image.fromarray((patch[h1:h2, w1:w2] * 255).astype(np.uint8))
-    image_resized = np.array(image.resize(self.image_shape,
-                                          Image.BICUBIC)).astype(float) / 255
+    if mask is None:
+      patch = image
+      height, width = self.image_shape
+
+      # Find x,y-coords of patch within image
+      x_coords, y_coords = [], []
+      for y in range(height):
+        for x in range(width):
+            if np.mean(image[y][x])>0:
+                x_coords.append(x)
+                y_coords.append(y)
+      
+      # If patch exists, find min/max coords
+      try:
+        x_min, x_max = np.min(x_coords), np.max(x_coords)
+        y_min, y_max = np.min(y_coords), np.max(y_coords)
+      except ValueError:
+        # No image segments that boost prediction probability - so exit here
+        image_resized = []
+        return image_resized, patch
+
+      # Crop image to patch dimensions
+      cropped_image = []
+      for y in range(y_min,y_max):
+        cropped_image.append([])
+        for x in range(x_min,x_max):
+          cropped_image[y-y_min].append([])
+          cropped_image[y-y_min][x-x_min].append(image[y][x][0])
+          cropped_image[y-y_min][x-x_min].append(image[y][x][1])
+          cropped_image[y-y_min][x-x_min].append(image[y][x][2])
+
+      # Get super-pixel by resizing patch to original image dimensions
+      cropped_image = Image.fromarray((np.array(cropped_image)).astype(np.uint8))
+      image_resized = np.array(cropped_image.resize([self.image_shape[1], self.image_shape[0]], Image.BICUBIC))
+
+      # Need to change how patch image is generated - set rest of image to average value
+    else:
+      mask_expanded = np.expand_dims(mask, -1)
+      patch = (mask_expanded * image + (
+          1 - mask_expanded) * float(self.average_image_value) / 255)
+      ones = np.where(mask == 1)
+      h1, h2, w1, w2 = ones[0].min(), ones[0].max(), ones[1].min(), ones[1].max()
+      image = Image.fromarray((patch[h1:h2, w1:w2] * 255).astype(np.uint8))
+      image_resized = np.array(image.resize(self.image_shape,
+                                            Image.BICUBIC)).astype(float) / 255
     return image_resized, patch
 
   def _patch_activations(self, imgs, bottleneck, bs=100, channel_mean=None):
@@ -628,6 +675,22 @@ class ConceptDiscovery(object):
     for bn in self.bottlenecks:
       acts = get_acts_from_images(images, self.model, bn)
       bn_grads = np.zeros((acts.shape[0], np.prod(acts.shape[1:])))
+      print('self.bottlenecks_gradients~~~~~~~~~~~~~~')
+      print(self.model.bottlenecks_gradients[bn])
+      print(self.model.bottlenecks_gradients[bn].shape)
+      print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+      print('----------------------------------')
+      print('acts')
+      print(acts.shape)
+      print(len(acts))
+      print(len(acts[0]))
+      print(len(acts[0][0]))
+      print(len(acts[0][0][0]))
+      print('class_id')
+      print(class_id)
+      print('bn')
+      print(bn)
+      print('--------------------------------------------')
       for i in range(len(acts)):
         bn_grads[i] = self.model.get_gradient(
             acts[i:i+1], [class_id], bn).reshape(-1)

@@ -134,20 +134,15 @@ def get_acts_from_images(imgs, model, bottleneck_name):
 def get_predictions_for_images(imgs, model):
 
   preds = np.asarray(model.get_predictions(imgs)).squeeze()
-  print('get_predictions_for_images---------------')
   for pred in preds:
     counter = 0
     max = 0
     max_counter = 0
     for r in pred:
-      print(counter, r)
       if r > max:
         max = r
         max_counter = counter
       counter += 1
-    print("MAX:", max, max_counter)
-    print('~~~~~~~~~~~~~')
-  print('-----------------------------------------')
   return np.asarray(model.get_predictions(imgs)).squeeze()
 
 
