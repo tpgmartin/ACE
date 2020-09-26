@@ -675,22 +675,6 @@ class ConceptDiscovery(object):
     for bn in self.bottlenecks:
       acts = get_acts_from_images(images, self.model, bn)
       bn_grads = np.zeros((acts.shape[0], np.prod(acts.shape[1:])))
-      print('self.bottlenecks_gradients~~~~~~~~~~~~~~')
-      print(self.model.bottlenecks_gradients[bn])
-      print(self.model.bottlenecks_gradients[bn].shape)
-      print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-      print('----------------------------------')
-      print('acts')
-      print(acts.shape)
-      print(len(acts))
-      print(len(acts[0]))
-      print(len(acts[0][0]))
-      print(len(acts[0][0][0]))
-      print('class_id')
-      print(class_id)
-      print('bn')
-      print(bn)
-      print('--------------------------------------------')
       for i in range(len(acts)):
         bn_grads[i] = self.model.get_gradient(
             acts[i:i+1], [class_id], bn).reshape(-1)

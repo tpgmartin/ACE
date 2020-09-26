@@ -50,18 +50,15 @@ def main(args):
       num_discovery_imgs=args.max_imgs,
       num_workers=args.num_parallel_workers)
   # Creating the dataset of image patches
-  print('ACE RUN')
-  predictions = cd.predict()
-  print(predictions)
-  sdfsdfsdf
-  cd.create_patches(param_dict={'n_segments': [15, 50, 80]})
+  # cd.create_patches(param_dict={'n_segments': [15, 50, 80]})
+  cd.create_patches(param_dict={'n_segments': [15]})
   # Saving the concept discovery target class images
   image_dir = os.path.join(discovered_concepts_dir, 'images')
   tf.gfile.MakeDirs(image_dir)
   ace_helpers.save_images(image_dir,
                             (cd.discovery_images * 256).astype(np.uint8))
   # Discovering Concepts
-  cd.discover_concepts(method='KM', param_dicts={'n_clusters': 25})
+  cd.discover_concepts(method='KM', param_dicts={'n_clusters': 3})
   del cd.dataset  # Free memory
   del cd.image_numbers
   del cd.patches
