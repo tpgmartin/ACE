@@ -101,7 +101,7 @@ class ConceptDiscovery(object):
     self.num_workers = num_workers
     self.average_image_value = average_image_value
 
-  def load_concept_imgs(self, concept, max_imgs=1000):
+  def load_concept_imgs(self, concept, max_imgs=1000, return_filenames=False):
     """Loads all colored images of a concept.
 
     Args:
@@ -119,12 +119,30 @@ class ConceptDiscovery(object):
     return load_images_from_files(
         img_paths,
         max_imgs=max_imgs,
-        return_filenames=False,
+        return_filenames=return_filenames,
         do_shuffle=False,
         run_parallel=(self.num_workers > 0),
         shape=(self.image_shape),
         num_workers=self.num_workers)
 
+  def get_activations(self, discovery_images=None, activations=None, param_dict=None):
+
+    if param_dict is None:
+      param_dict = {}
+
+    if discovery_images is None:
+      # TODO: Want to match image data to image filename
+      raw_imgs, final_filenames = self.load_concept_imgs(
+          self.target_class, self.num_discovery_imgs, True)
+      self.discovery_images = raw_imgs
+
+    for bn in self.bottlenecks:
+      bn_dic = {}
+      if activations is None or bn not in activations.keys():
+        bn_activations = self._patch_activations(self.discovery_images, bn)
+
+    return bn_activations, final_filenames
+      
 
   # Process heatmap images - only want to crop and resize images like
   # `./net_occlusion_heatmaps_delta_prob/n09229709/n09229709_28418/mask_dim_100/n09229709_28418_image_cropped_to_mask/n09229709_28418_image_cropped_to_mask.JPEG`

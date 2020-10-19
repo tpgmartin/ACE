@@ -1,5 +1,3 @@
-# File used as reference for `get_activation_from_heatmap_images.py`
-
 """This script runs the whole ACE method."""
 
 
@@ -18,19 +16,13 @@ import argparse
 def main(args):
 
   ###### related DIRs on CNS to store results #######
-  discovered_concepts_dir = os.path.join(args.working_dir, 'concepts/')
-  results_dir = os.path.join(args.working_dir, 'results/')
   cavs_dir = os.path.join(args.working_dir, 'cavs/')
   activations_dir = os.path.join(args.working_dir, 'acts/')
-  results_summaries_dir = os.path.join(args.working_dir, 'results_summaries/')
   if tf.gfile.Exists(args.working_dir):
     tf.gfile.DeleteRecursively(args.working_dir)
   tf.gfile.MakeDirs(args.working_dir)
-  tf.gfile.MakeDirs(discovered_concepts_dir)
-  tf.gfile.MakeDirs(results_dir)
   tf.gfile.MakeDirs(cavs_dir)
   tf.gfile.MakeDirs(activations_dir)
-  tf.gfile.MakeDirs(results_summaries_dir)
   random_concept = 'random_discovery'  # Random concept for statistical testing
   sess = utils.create_session()
   mymodel = ace_helpers.make_model(
@@ -51,37 +43,43 @@ def main(args):
       min_imgs=args.min_imgs,
       num_discovery_imgs=args.max_imgs,
       num_workers=args.num_parallel_workers)
-  # Creating the dataset of image patches
-  cd.create_patches(method=None, param_dict={'n_segments': [15, 50, 80]})
-  # Saving the concept discovery target class images
-  image_dir = os.path.join(discovered_concepts_dir, 'images')
-  tf.gfile.MakeDirs(image_dir)
-  ace_helpers.save_images(image_dir,
-                            (cd.discovery_images * 256).astype(np.uint8))
+
+
+  # For given set of images find the bottleneck activation
+  # For bottleneck activations, find pairwise cosine similarity
+
   # Discovering Concepts
-  activations = {bn: cd._patch_activations(cd.dataset, bn) for bn in cd.bottlenecks}
-  cd.discover_concepts(method='KM', activations=activations, param_dicts={'n_clusters': 3}) # Need to adjust number of clusters
-  del cd.dataset  # Free memory
-  del cd.image_numbers
-  del cd.patches
+  # TODO: Still need to crop and resize images found through occlusion to get superpixels
+  activations, img_filenames = cd.get_activations()
+
+  # For the 17 images found, expect 17C2 = 136 pairs
+  cosine_sims = []
+  for i in range(len(activations)-1):
+      for j in range(i+1,len(activations)):
+          cosine_sim = {}
+          cosine_sim['image_1'] = i
+          cosine_sim['image_2'] = j
+          cosine_sim['cosine_sim'] = ace_helpers.cosine_similarity(activations[i],activations[j])
+          cosine_sims.append(cosine_sim)
+
+  print(sorted(cosine_sims, key=lambda k: k['cosine_sim'], reverse=True)[:3])
+  print(img_filenames[sorted(cosine_sims, key=lambda k: k['cosine_sim'], reverse=True)[0]['image_1']])
+  print(img_filenames[sorted(cosine_sims, key=lambda k: k['cosine_sim'], reverse=True)[0]['image_2']])
+  print('-------------------------')
+  print(sorted(cosine_sims, key=lambda k: k['cosine_sim'])[:3])
+  print(img_filenames[sorted(cosine_sims, key=lambda k: k['cosine_sim'])[0]['image_1']])
+  print(img_filenames[sorted(cosine_sims, key=lambda k: k['cosine_sim'])[0]['image_2']])
+
+  # Compare and contrast with randomly selected images 
+
+
+#   del cd.dataset  # Free memory
+#   del cd.image_numbers
+#   del cd.patches
+
+  # TODO: Save discovered concepts   
   # Save discovered concept images (resized and original sized)
-  ace_helpers.save_concepts(cd, discovered_concepts_dir)
-  # Calculating CAVs and TCAV scores
-  # Pass activations here
-  cav_accuracies = cd.cavs(min_acc=0.0)
-  print('cav_accuracies ------------------------')
-  print('---------------------------------------')
-  scores = cd.tcavs(test=False)
-  print('scores ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-  print(scores)
-  print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-  ace_helpers.save_ace_report(cd, cav_accuracies, scores,
-                                 results_summaries_dir + 'ace_results.txt')
-  # Plot examples of discovered concepts
-#   for bn in cd.bottlenecks:
-    # ace_helpers.plot_concepts(cd, bn, 10, address=results_dir)
-  # Delete concepts that don't pass statistical testing
-#   cd.test_and_remove_concepts(scores)
+#   ace_helpers.save_concepts(cd, discovered_concepts_dir)
 
 def parse_arguments(argv):
   """Parses the arguments passed to the run.py script."""
