@@ -131,7 +131,6 @@ class ConceptDiscovery(object):
       param_dict = {}
 
     if discovery_images is None:
-      # TODO: Want to match image data to image filename
       raw_imgs, final_filenames = self.load_concept_imgs(
           self.target_class, self.num_discovery_imgs, True)
       self.discovery_images = raw_imgs
@@ -142,7 +141,24 @@ class ConceptDiscovery(object):
         bn_activations = self._patch_activations(self.discovery_images, bn)
 
     return bn_activations, final_filenames
-      
+
+  def get_random_activations(self, discovery_images=None, activations=None, param_dict=None):
+
+    if param_dict is None:
+      param_dict = {}
+
+    if discovery_images is None:
+      # TODO: Want to match image data to image filename
+      raw_imgs, final_filenames = self.load_concept_imgs(
+          self.random_concept, self.num_discovery_imgs, True)
+      self.discovery_images = raw_imgs
+
+    for bn in self.bottlenecks:
+      bn_dic = {}
+      if activations is None or bn not in activations.keys():
+        bn_activations = self._patch_activations(self.discovery_images, bn)
+
+    return bn_activations, final_filenames
 
   # Process heatmap images - only want to crop and resize images like
   # `./net_occlusion_heatmaps_delta_prob/n09229709/n09229709_28418/mask_dim_100/n09229709_28418_image_cropped_to_mask/n09229709_28418_image_cropped_to_mask.JPEG`
@@ -627,6 +643,8 @@ class ConceptDiscovery(object):
       A dicationary of classification accuracy of linear boundaries orthogonal
       to cav vectors
     """
+    print('Calling CAVs method')
+    print(self.dic)
     acc = {bn: {} for bn in self.bottlenecks}
     concepts_to_delete = []
     for bn in self.bottlenecks:
@@ -735,6 +753,7 @@ class ConceptDiscovery(object):
       [list of tcav scores], ...}, ...} containing TCAV scores.
     """
 
+    print("Calling TCAVs method")
     tcav_scores = {bn: {} for bn in self.bottlenecks}
     randoms = ['random500_{}'.format(i) for i in np.arange(self.num_random_exp)]
     if tcav_score_images is None:  # Load target class images if not given
@@ -744,6 +763,10 @@ class ConceptDiscovery(object):
     for bn in self.bottlenecks:
       for concept in self.dic[bn]['concepts'] + [self.random_concept]:
         def t_func(rnd):
+          print("bn", bn)
+          print("concept", concept)
+          print("rnd", rnd)
+          print("gradients", gradients)
           return self._tcav_score(bn, concept, rnd, gradients)
         if self.num_workers:
           pool = multiprocessing.Pool(self.num_workers)
@@ -754,6 +777,7 @@ class ConceptDiscovery(object):
       self.test_and_remove_concepts(tcav_scores)
     if sort:
       self._sort_concepts(tcav_scores)
+    print("====================")
     return tcav_scores
 
   def do_statistical_testings(self, i_ups_concept, i_ups_random):
