@@ -70,6 +70,7 @@ def main(args):
   # Pass activations here
   cav_accuracies = cd.cavs(min_acc=0.0)
   print('cav_accuracies ------------------------')
+  print(cav_accuracies)
   print('---------------------------------------')
   scores = cd.tcavs(test=False)
   print('scores ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
@@ -110,7 +111,8 @@ def parse_arguments(argv):
                       default=40)
   parser.add_argument('--min_imgs', type=int,
       help="Minimum number of images in a discovered concept",
-                      default=40)
+                    #   default=40)
+                      default=1)
   parser.add_argument('--num_parallel_workers', type=int,
       help="Number of parallel jobs.",
                       default=0)

@@ -498,11 +498,15 @@ class ConceptDiscovery(object):
       if activations is None or bn not in activations.keys():
         bn_activations = self._patch_activations(self.dataset, bn)
       else:
+        # print("activations:", activations)
         bn_activations = activations[bn]
       bn_dic['label'], bn_dic['cost'], centers = self._cluster(
           bn_activations, method, param_dicts[bn])
+      # print("bn_dic['label']:", bn_dic['label'])
+      # print("bn_dic['cost']:", bn_dic['cost'])
       concept_number, bn_dic['concepts'] = 0, []
       for i in range(bn_dic['label'].max() + 1):
+        print('label:', i)
         label_idxs = np.where(bn_dic['label'] == i)[0]
         if len(label_idxs) > self.min_imgs:
           concept_costs = bn_dic['cost'][label_idxs]
@@ -521,6 +525,11 @@ class ConceptDiscovery(object):
           highly_populated_concept = len(
               concept_image_numbers) > 0.5 * discovery_size
           cond3 = non_common_concept and highly_populated_concept
+          print('label:', i)
+          print('highly_common_concept:', highly_common_concept)
+          print('cond2:', cond2)
+          print('cond3:', cond3)
+          print('---------')
           if highly_common_concept or cond2 or cond3:
             concept_number += 1
             concept = '{}_concept{}'.format(self.target_class, concept_number)
@@ -643,8 +652,8 @@ class ConceptDiscovery(object):
       A dicationary of classification accuracy of linear boundaries orthogonal
       to cav vectors
     """
-    print('Calling CAVs method')
-    print(self.dic)
+    # print('Calling CAVs method')
+    # print(self.dic)
     acc = {bn: {} for bn in self.bottlenecks}
     concepts_to_delete = []
     for bn in self.bottlenecks:
@@ -753,7 +762,7 @@ class ConceptDiscovery(object):
       [list of tcav scores], ...}, ...} containing TCAV scores.
     """
 
-    print("Calling TCAVs method")
+    # print("Calling TCAVs method")
     tcav_scores = {bn: {} for bn in self.bottlenecks}
     randoms = ['random500_{}'.format(i) for i in np.arange(self.num_random_exp)]
     if tcav_score_images is None:  # Load target class images if not given
@@ -763,10 +772,10 @@ class ConceptDiscovery(object):
     for bn in self.bottlenecks:
       for concept in self.dic[bn]['concepts'] + [self.random_concept]:
         def t_func(rnd):
-          print("bn", bn)
-          print("concept", concept)
-          print("rnd", rnd)
-          print("gradients", gradients)
+          # print("bn", bn)
+          # print("concept", concept)
+          # print("rnd", rnd)
+          # print("gradients", gradients)
           return self._tcav_score(bn, concept, rnd, gradients)
         if self.num_workers:
           pool = multiprocessing.Pool(self.num_workers)
@@ -777,7 +786,7 @@ class ConceptDiscovery(object):
       self.test_and_remove_concepts(tcav_scores)
     if sort:
       self._sort_concepts(tcav_scores)
-    print("====================")
+    # print("====================")
     return tcav_scores
 
   def do_statistical_testings(self, i_ups_concept, i_ups_random):

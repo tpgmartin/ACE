@@ -1,10 +1,10 @@
 """This script runs the whole ACE method."""
 
-
 import sys
 import os
 import numpy as np
 import sklearn.metrics as metrics
+import scipy.stats as stats
 from tcav import utils
 import tensorflow as tf
 
@@ -62,16 +62,26 @@ def main(args):
           cosine_sim['cosine_sim'] = ace_helpers.cosine_similarity(activations[i],activations[j])
           cosine_sims.append(cosine_sim)
 
-  print(sorted(cosine_sims, key=lambda k: k['cosine_sim'], reverse=True)[:3])
-  print(img_filenames[sorted(cosine_sims, key=lambda k: k['cosine_sim'], reverse=True)[0]['image_1']])
-  print(img_filenames[sorted(cosine_sims, key=lambda k: k['cosine_sim'], reverse=True)[0]['image_2']])
-  print('-------------------------')
-  print(sorted(cosine_sims, key=lambda k: k['cosine_sim'])[:3])
-  print(img_filenames[sorted(cosine_sims, key=lambda k: k['cosine_sim'])[0]['image_1']])
-  print(img_filenames[sorted(cosine_sims, key=lambda k: k['cosine_sim'])[0]['image_2']])
-
   # Compare and contrast with randomly selected images 
 
+  random_activations, random_img_filenames = cd.get_random_activations()
+  random_cosine_sims = []
+  for i in range(len(random_activations)-1):
+      for j in range(i+1,len(random_activations)):
+          cosine_sim = {}
+          cosine_sim['image_1'] = i
+          cosine_sim['image_2'] = j
+          cosine_sim['cosine_sim'] = ace_helpers.cosine_similarity(random_activations[i],random_activations[j])
+          random_cosine_sims.append(cosine_sim)
+
+  target_cosine_sims = [x['cosine_sim'] for x in cosine_sims]
+  random_cosine_sims = [x['cosine_sim'] for x in random_cosine_sims]
+
+  print(f'Target: {np.mean(target_cosine_sims)}±{np.std(target_cosine_sims)}')
+  print(f'Random: {np.mean(random_cosine_sims)}±{np.std(random_cosine_sims)}')
+  tstat, p = stats.ttest_ind(target_cosine_sims, random_cosine_sims)
+
+  print(tstat, p)
 
 #   del cd.dataset  # Free memory
 #   del cd.image_numbers
