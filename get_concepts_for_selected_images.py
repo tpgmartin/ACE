@@ -1,10 +1,12 @@
 """This script runs the whole ACE method."""
 
-
+from distutils.dir_util import copy_tree
+from glob import glob
 import numpy as np
 import os
 import pandas as pd
 import sklearn.metrics as metrics
+from shutil import rmtree
 import sys
 from tcav import utils
 import tensorflow as tf
@@ -135,14 +137,22 @@ if __name__ == '__main__':
 
         df = pd.read_csv(sample)
         filepaths = df['filename']
+        img_code = filepaths[0].split('/')[-3]
         sample_dir_path = '/'.join(filepaths[0].split('/')[2:-2])
         sample_dir_path = f'./{sample_dir_path}/img_sample'
 
         # Copy random discovery folders to image directory
+        for random_dir in glob('./ImageNet/random*'):
+            random_dir_name = random_dir.split('/')[-1]
+            copy_tree(random_dir, f'./ImageNet/ILSVRC2012_img_train/{img_code}/img_sample/{random_dir_name}')
 
         args = parse_arguments(sys.argv[1:])
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
         main(args)
 
-        # delete random images
+        # Delete random images
+        for dir in glob(f'./ImageNet/ILSVRC2012_img_train/{img_code}/img_sample/random*'):
+            rmtree(dir)
+
+
