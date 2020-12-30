@@ -118,7 +118,7 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/antbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lipstickbaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
+        '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/restaurantbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/basketballbaseline_prediction_samples.csv', 
         # '../inm363-individual-project/baseline_prediction_samples/bookshopbaseline_prediction_samples.csv',
@@ -128,10 +128,20 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/bubblebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cinemabaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/volleyballbaseline_prediction_samples.csv'
     ]
+
+    # * 'mixed3a': <tf.Tensor 'v1/mixed3a:0' shape=(?, ?, ?, 256) dtype=float32>
+    # * 'mixed3b': <tf.Tensor 'v1/mixed3b:0' shape=(?, ?, ?, 480) dtype=float32>
+    # * 'mixed4a': <tf.Tensor 'v1/mixed4a:0' shape=(?, ?, ?, 508) dtype=float32>
+    # * 'mixed4b': <tf.Tensor 'v1/mixed4b:0' shape=(?, ?, ?, 512) dtype=float32>
+    # * 'mixed4c': <tf.Tensor 'v1/mixed4c:0' shape=(?, ?, ?, 512) dtype=float32>
+    # * 'mixed4d': <tf.Tensor 'v1/mixed4d:0' shape=(?, ?, ?, 528) dtype=float32>
+    # * 'mixed4e': <tf.Tensor 'v1/mixed4e:0' shape=(?, ?, ?, 832) dtype=float32>
+    # * 'mixed5a': <tf.Tensor 'v1/mixed5a:0' shape=(?, ?, ?, 832) dtype=float32>
+    # * 'mixed5b': <tf.Tensor 'v1/mixed5b:0' shape=(?, ?, ?, 1024) dtype=float32>
 
     for sample in samples:
 
