@@ -6,7 +6,7 @@ import numpy as np
 import os
 import pandas as pd
 import sklearn.metrics as metrics
-from shutil import rmtree
+from shutil import copyfile, rmtree
 import sys
 from tcav import utils
 import tensorflow as tf
@@ -118,7 +118,7 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/antbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lipstickbaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/restaurantbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/basketballbaseline_prediction_samples.csv', 
         # '../inm363-individual-project/baseline_prediction_samples/bookshopbaseline_prediction_samples.csv',
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/lotionbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/bubblebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cinemabaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
+        '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/volleyballbaseline_prediction_samples.csv'
@@ -146,10 +146,19 @@ if __name__ == '__main__':
     for sample in samples:
 
         df = pd.read_csv(sample)
+        true_label = df['true_label'][0]
         filepaths = df['filename']
         img_code = filepaths[0].split('/')[-3]
         sample_dir_path = '/'.join(filepaths[0].split('/')[2:-2])
         sample_dir_path = f'./{sample_dir_path}/img_sample'
+
+        # Copy sample images 
+        img_sample_dir = f'./ImageNet/ILSVRC2012_img_train/{img_code}/img_sample/{true_label}'
+        os.makedirs(img_sample_dir, exist_ok=True)
+        for f in filepaths:
+            filename = f.split('/')[-1]
+            original_filepath = './' + '/'.join(f.split('/')[2:])
+            copyfile(original_filepath, f'{img_sample_dir}/{filename}')
 
         # Copy random discovery folders to image directory
         for random_dir in glob('./ImageNet/random*'):
@@ -159,6 +168,7 @@ if __name__ == '__main__':
         args = parse_arguments(sys.argv[1:])
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
+        args.bottlenecks = 'mixed3a,mixed3b,mixed4a,mixed4b,mixed4c,mixed4d,mixed4e,mixed5a,mixed5b'
         main(args)
 
         # Delete random images
