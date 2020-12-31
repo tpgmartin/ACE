@@ -70,11 +70,11 @@ def main(args):
     cav_accuraciess = cd.cavs(min_acc=0.0)
     scores = cd.tcavs(test=False)
     # Save ACE report <- Skip for now
-    # ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
-                                    # results_summaries_dir + 'ace_results.txt')
+    ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
+                                    results_summaries_dir + 'ace_results.txt')
     # Plot examples of discovered concepts <- Skip for now
-    # for bn in cd.bottlenecks:
-        # ace_helpers.plot_concepts(cd, bn, 10, address=results_dir)
+    for bn in cd.bottlenecks:
+        ace_helpers.plot_concepts(cd, bn, 10, address=results_dir)
     # Delete concepts that don't pass statistical testing
     cd.test_and_remove_concepts(scores)
 
@@ -115,7 +115,7 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     samples = [
-        # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
+        '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/antbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lipstickbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/lotionbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/bubblebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cinemabaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/volleyballbaseline_prediction_samples.csv'
