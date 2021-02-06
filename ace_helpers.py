@@ -40,8 +40,8 @@ def make_model(sess, model_to_run, model_path,
   """
   if model_to_run == 'InceptionV3':
     if not model_path:
+      print('Model loading ...')
       mymodel = load_model(model_path)
-    else:
       base_path = os.getcwd()
       mymodel = load_model(os.path.join(base_path,'inception_v3.h5'))
 
@@ -55,6 +55,10 @@ def make_model(sess, model_to_run, model_path,
       mymodel = KerasModelWrapper(sess,
         labels_path, [299, 299, 3], endpoints_v3,
         'InceptionV3_public', (-1, 1))
+      print('Model successfully initialised!')
+    else:
+      mymodel = model.InceptionV3Wrapper_public(
+        sess, model_saved_path=model_path, labels_path=labels_path)
   elif model_to_run == 'GoogleNet':
     # common_typos_disable
     mymodel = model.GoolgeNetWrapper_public(
