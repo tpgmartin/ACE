@@ -96,7 +96,7 @@ def parse_arguments(argv):
       help='The name of the target class to be interpreted', default='dumbbell')
   parser.add_argument('--bottlenecks', type=str,
       help='Names of the target layers of the network (comma separated)',
-                      default='mixed4c')
+                      default='mixed5b')
   parser.add_argument('--num_random_exp', type=int,
       help="Number of random experiments used for statistical testing, etc",
                       default=20)
@@ -115,7 +115,7 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     samples = [
-        '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/antbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lipstickbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
@@ -166,8 +166,12 @@ if __name__ == '__main__':
             copy_tree(random_dir, f'./ImageNet/ILSVRC2012_img_train/{img_code}/img_sample/{random_dir_name}')
 
         args = parse_arguments(sys.argv[1:])
+        args.model_to_run = 'InceptionV3'
+		args.model_path = './inception_v3.h5'
+		args.bottlenecks = 'mixed8'
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
+
         # args.bottlenecks = 'mixed3a,mixed3b,mixed4a,mixed4b,mixed4c,mixed4d,mixed4e,mixed5a,mixed5b'
         main(args)
 
