@@ -84,9 +84,11 @@ def parse_arguments(argv):
   parser.add_argument('--working_dir', type=str,
       help='Directory to save the results.', default='./ACE')
   parser.add_argument('--model_to_run', type=str,
-      help='The name of the model.', default='GoogleNet')
+    #   help='The name of the model.', default='GoogleNet')
+      help='The name of the model.', default='InceptionV3')
   parser.add_argument('--model_path', type=str,
-      help='Path to model checkpoints.', default='./tensorflow_inception_graph.pb')
+    #   help='Path to model checkpoints.', default='./tensorflow_inception_graph.pb')
+      help='Path to model checkpoints.', default=None)
   parser.add_argument('--labels_path', type=str,
       help='Path to model checkpoints.', default='./imagenet_labels.txt')
   parser.add_argument('--target_class', type=str,

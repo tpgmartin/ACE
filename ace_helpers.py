@@ -13,6 +13,14 @@ from sklearn import linear_model
 from sklearn.model_selection import cross_val_score
 import tensorflow as tf
 
+# Dependencies to load Keras model
+import keras
+from keras.applications.inception_v3 import InceptionV3
+import keras.backend as K
+from keras.layers import Input
+from keras.models import load_model
+from wrapper import KerasModelWrapper
+
 def make_model(sess, model_to_run, model_path, 
                labels_path, randomize=False,):
   """Make an instance of a model.
@@ -31,8 +39,22 @@ def make_model(sess, model_to_run, model_path,
     ValueError: If model name is not valid.
   """
   if model_to_run == 'InceptionV3':
-    mymodel = model.InceptionV3Wrapper_public(
-        sess, model_saved_path=model_path, labels_path=labels_path)
+    if not model_path:
+      mymodel = load_model(model_path)
+    else:
+      base_path = os.getcwd()
+      mymodel = load_model(os.path.join(base_path,'inception_v3.h5'))
+
+      endpoints_v3 = dict(
+        input=mymodel.inputs[0].name,
+        input_tensor=mymodel.inputs[0],
+        logit=mymodel.outputs[0].name,
+        prediction=mymodel.outputs[0].name,
+        prediction_tensor=mymodel.outputs[0])
+
+      mymodel = KerasModelWrapper(sess,
+        labels_path, [299, 299, 3], endpoints_v3,
+        'InceptionV3_public', (-1, 1))
   elif model_to_run == 'GoogleNet':
     # common_typos_disable
     mymodel = model.GoolgeNetWrapper_public(
