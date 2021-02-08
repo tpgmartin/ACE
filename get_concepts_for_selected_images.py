@@ -24,14 +24,16 @@ def main(args):
     cavs_dir = os.path.join(args.working_dir, 'cavs/')
     activations_dir = os.path.join(args.working_dir, 'acts/')
     results_summaries_dir = os.path.join(args.working_dir, 'results_summaries/')
-    if tf.gfile.Exists(args.working_dir):
-        tf.gfile.DeleteRecursively(args.working_dir)
-    tf.gfile.MakeDirs(args.working_dir)
-    tf.gfile.MakeDirs(discovered_concepts_dir)
-    tf.gfile.MakeDirs(results_dir)
-    tf.gfile.MakeDirs(cavs_dir)
-    tf.gfile.MakeDirs(activations_dir)
-    tf.gfile.MakeDirs(results_summaries_dir)
+    ###### Skip this to avoid removing existing concepts ######
+    # if tf.gfile.Exists(args.working_dir):
+        # tf.gfile.DeleteRecursively(args.working_dir)
+    if not tf.gfile.Exists(args.working_dir):
+        tf.gfile.MakeDirs(args.working_dir)
+        tf.gfile.MakeDirs(discovered_concepts_dir)
+        tf.gfile.MakeDirs(results_dir)
+        tf.gfile.MakeDirs(cavs_dir)
+        tf.gfile.MakeDirs(activations_dir)
+        tf.gfile.MakeDirs(results_summaries_dir)
     random_concept = 'random_discovery'  # Random concept for statistical testing
     sess = utils.create_session()
     mymodel = ace_helpers.make_model(
@@ -55,7 +57,7 @@ def main(args):
     # Creating the dataset of image patches
     cd.create_patches(param_dict={'n_segments': [15, 50, 80]})
     # Saving the concept discovery target class images
-    image_dir = os.path.join(discovered_concepts_dir, 'images')
+    image_dir = os.path.join(discovered_concepts_dir, 'images', args.target_class)
     tf.gfile.MakeDirs(image_dir)
     ace_helpers.save_images(image_dir,
                             (cd.discovery_images * 256).astype(np.uint8))
@@ -71,10 +73,10 @@ def main(args):
     scores = cd.tcavs(test=False)
     # Save ACE report <- Skip for now
     ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
-                                    results_summaries_dir + 'ace_results.txt')
+                                    results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
     # Plot examples of discovered concepts <- Skip for now
     for bn in cd.bottlenecks:
-        ace_helpers.plot_concepts(cd, bn, 10, address=results_dir)
+        ace_helpers.plot_concepts(cd, bn, args.target_class, 10, address=results_dir)
     # Delete concepts that don't pass statistical testing
     cd.test_and_remove_concepts(scores)
 
@@ -118,7 +120,7 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/antbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lipstickbaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
+        '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/restaurantbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/basketballbaseline_prediction_samples.csv', 
         # '../inm363-individual-project/baseline_prediction_samples/bookshopbaseline_prediction_samples.csv',
@@ -127,7 +129,7 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/lotionbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/bubblebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cinemabaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/volleyballbaseline_prediction_samples.csv'

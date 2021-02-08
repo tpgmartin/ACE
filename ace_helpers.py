@@ -40,6 +40,7 @@ def make_model(sess, model_to_run, model_path,
   """
   if model_to_run == 'InceptionV3':
     if '.h5' in model_path:
+      print('###### Load h5 model ######')
       mymodel = load_model(model_path)
 
       endpoints_v3 = dict(
@@ -278,7 +279,7 @@ def binary_dataset(pos, neg, balanced=True):
   return x, y
 
 
-def plot_concepts(cd, bn, num=10, address=None, mode='diverse', concepts=None):
+def plot_concepts(cd, bn, target_class, num=10, address=None, mode='diverse', concepts=None):
   """Plots examples of discovered concepts.
 
   Args:
@@ -348,7 +349,7 @@ def plot_concepts(cd, bn, num=10, address=None, mode='diverse', concepts=None):
       fig.add_subplot(ax)
   plt.suptitle(bn)
   if address is not None:
-    with tf.gfile.Open(address + bn + '.png', 'w') as f:
+    with tf.gfile.Open(address +  bn + '_' + target_class + '.png', 'w') as f:
       fig.savefig(f)
     plt.clf()
     plt.close(fig)
