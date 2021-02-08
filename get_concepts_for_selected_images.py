@@ -127,21 +127,11 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/lotionbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/bubblebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cinemabaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
+        '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/volleyballbaseline_prediction_samples.csv'
     ]
-
-    # * 'mixed3a': <tf.Tensor 'v1/mixed3a:0' shape=(?, ?, ?, 256) dtype=float32>
-    # * 'mixed3b': <tf.Tensor 'v1/mixed3b:0' shape=(?, ?, ?, 480) dtype=float32>
-    # * 'mixed4a': <tf.Tensor 'v1/mixed4a:0' shape=(?, ?, ?, 508) dtype=float32>
-    # * 'mixed4b': <tf.Tensor 'v1/mixed4b:0' shape=(?, ?, ?, 512) dtype=float32>
-    # * 'mixed4c': <tf.Tensor 'v1/mixed4c:0' shape=(?, ?, ?, 512) dtype=float32>
-    # * 'mixed4d': <tf.Tensor 'v1/mixed4d:0' shape=(?, ?, ?, 528) dtype=float32>
-    # * 'mixed4e': <tf.Tensor 'v1/mixed4e:0' shape=(?, ?, ?, 832) dtype=float32>
-    # * 'mixed5a': <tf.Tensor 'v1/mixed5a:0' shape=(?, ?, ?, 832) dtype=float32>
-    # * 'mixed5b': <tf.Tensor 'v1/mixed5b:0' shape=(?, ?, ?, 1024) dtype=float32>
 
     for sample in samples:
 
@@ -167,12 +157,11 @@ if __name__ == '__main__':
 
         args = parse_arguments(sys.argv[1:])
         args.model_to_run = 'InceptionV3'
-		args.model_path = './inception_v3.h5'
-		args.bottlenecks = 'mixed8'
+        args.model_path = './inception_v3.h5'
+        args.bottlenecks = 'mixed8'
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
 
-        # args.bottlenecks = 'mixed3a,mixed3b,mixed4a,mixed4b,mixed4c,mixed4d,mixed4e,mixed5a,mixed5b'
         main(args)
 
         # Delete random images
