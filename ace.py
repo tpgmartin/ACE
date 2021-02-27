@@ -184,6 +184,8 @@ class ConceptDiscovery(object):
       param_dict = {}
     dataset, image_numbers, patches = [], [], []
     if discovery_images is None:
+      print('self.target_class', self.target_class)
+      print('self.num_discovery_imgs', self.num_discovery_imgs)
       raw_imgs = self.load_concept_imgs(
           self.target_class, self.num_discovery_imgs)
       self.discovery_images = raw_imgs
@@ -202,6 +204,7 @@ class ConceptDiscovery(object):
           image_numbers.append(fn)
     else:
       for fn, img in enumerate(self.discovery_images):
+        print("img no.", fn)
         image_superpixels, image_patches = self._return_superpixels(
             img, method, param_dict)
         for superpixel, patch in zip(image_superpixels, image_patches):
@@ -210,6 +213,11 @@ class ConceptDiscovery(object):
           image_numbers.append(fn)
     self.dataset, self.image_numbers, self.patches =\
     np.array(dataset), np.array(image_numbers), np.array(patches)
+    print('========================================')
+    print('self.dataset', len(self.dataset))
+    print(self.image_numbers)
+    print('self.patches', len(self.patches))
+    print('========================================')
 
   def _return_superpixels(self, img, method='slic',
                           param_dict=None):
@@ -278,6 +286,7 @@ class ConceptDiscovery(object):
         elif method == 'felzenszwalb':
           segments = segmentation.felzenszwalb(
               img, scale=scales[i], sigma=sigmas[i], min_size=min_sizes[i])
+        print("segments:", len(segments))
         for s in range(segments.max()):
           mask = (segments == s).astype(float)
           if np.mean(mask) > 0.001:
