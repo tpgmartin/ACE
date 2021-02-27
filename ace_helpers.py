@@ -449,15 +449,29 @@ def save_ace_report(cd, accs, scores, address):
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       report += '\n' + bn + ':' + concept + ':' + str(
-          np.mean(accs[bn][concept]))
+          np.mean(accs[bn][concept])) + '±' + str(
+            np.std(accs[bn][concept]))
+  # Get all CAV accuracies
+  report += '\n\t\t\t ---Raw CAV accuracies data---'
+  for bn in cd.bottlenecks:
+    report += '\n'
+    for concept in cd.dic[bn]['concepts']:
+      report += '\n' + bn + ':' + concept + ':' + str(
+          accs[bn][concept])
   report += '\n\n\t\t\t ---TCAV scores---'
   for bn in cd.bottlenecks:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       pvalue = cd.do_statistical_testings(
           scores[bn][concept], scores[bn][cd.random_concept])
-      report += '\n{}:{}:{},{}'.format(bn, concept,
-                                       np.mean(scores[bn][concept]), pvalue)
+      report += '\n{}:{}:{}±{},{}'.format(bn, concept,
+                                       np.mean(scores[bn][concept]), np.std(scores[bn][concept]), pvalue)
+  # Get all TCAV scores
+  report += '\n\t\t\t ---Raw TCAV scores data---'
+  for bn in cd.bottlenecks:
+    report += '\n'
+    for concept in cd.dic[bn]['concepts']:
+      report += '\n{}:{}:{}'.format(bn, concept, scores[bn][concept])
   with tf.gfile.Open(address, 'w') as f:
     f.write(report)
 
