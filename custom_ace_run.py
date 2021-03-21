@@ -80,7 +80,7 @@ def main(args):
     ]
 
     # images = [glob(f'{os.path.join(discovered_concepts_dir, concept_images_dir)}/*.png') for concept_images_dir in concept_images_dirs]
-    images = [glob(f'{os.path.join(discovered_concepts_dir, concept_images_dir)}/') for concept_images_dir in concept_images_dirs]
+    images = [glob(f'{os.path.join(discovered_concepts_dir, concept_images_dir)}/*.png') for concept_images_dir in concept_images_dirs]
     images = [image for nested_images in images for image in nested_images]
 
     cd.dic = {} # not initialised elsewhere as skip concept discovery steps

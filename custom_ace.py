@@ -669,16 +669,16 @@ class ConceptDiscovery(object):
     concepts_to_delete = []
     for bn in self.bottlenecks:
       for concept in self.dic[bn]['concepts']:
-        concept_imgs = self.dic[bn][concept]['images']
-        # concept_acts = get_acts_from_images(concept_imgs, self.model, bn) # <- Skip this
+        # concept_imgs = self.dic[bn][concept]['images']
         # Get concept activations from separate project - TODO: Change how activations loaded 
-        tmp_acts_dir = '../inm363-individual-project/acts'
-        concept_acts = []
-        for concept_img in concept_imgs:
-          layer, label, concept_label = concept_img.split('/')[-2].split('_')
-          image_acts = np.array([np.load(acts).squeeze() for acts in glob(f'{tmp_acts_dir}/{label}/acts_{label}_{concept_label}_*_{bn}')])
-          concept_acts.extend(image_acts)
-        
+        # concept_acts = []
+        # for concept_img in concept_imgs:
+        #   layer, label, concept_label = concept_img.split('/')[-2].split('_')
+        #   image_acts = np.array([np.load(acts).squeeze() for acts in glob(f'{tmp_acts_dir}/{label}/acts_{label}_{concept_label}_*_{bn}')])
+        #   concept_acts.extend(image_acts)
+
+        concept_imgs = [load_image_from_file(image_file, self.image_shape) for image_file in self.dic[bn][concept]['images']]
+        concept_acts = get_acts_from_images(concept_imgs, self.model, bn) # <- Skip this
         acc[bn][concept] = self._concept_cavs(bn, concept, concept_acts, ow=ow)
     #     if np.mean(acc[bn][concept]) < min_acc:
     #       concepts_to_delete.append((bn, concept))
