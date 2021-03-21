@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 import os.path
 import pickle
+import random
 import numpy as np
 from six.moves import range
 from sklearn import linear_model
@@ -117,17 +118,36 @@ class CAV(object):
         labels2text -  map between labels and text.
     """
 
+    random.seed(0)
+
+    print('_create_cav_training_set -------------------------')
+    print('combined_concept')
+    print(len(acts['combined_concept']['mixed8']))
+    print(len(acts['combined_concept']['mixed8'][0]))
+    print('random500_0')
+    print(acts['random500_0']['mixed8'].shape)
+    print(len(acts['random500_0']['mixed8']))
+    print(len(acts['random500_0']['mixed8'][0]))
+    print(len(acts['random500_0']['mixed8'][0][0]))
+    print(len(acts['random500_0']['mixed8'][0][0][0]))
+    print('--------------------------------------------------')
+
     x = []
     labels = []
     labels2text = {}
     # to make sure postiive and negative examples are balanced,
     # truncate all examples to the size of the smallest concept.
     min_data_points = np.min(
-        [acts[concept][bottleneck].shape[0] for concept in acts.keys()])
+        [len(acts[concept][bottleneck])[0] for concept in acts.keys()]) # <- can skip this as only have one concept
 
     for i, concept in enumerate(concepts):
-      x.extend(acts[concept][bottleneck][:min_data_points].reshape(
-          min_data_points, -1))
+
+      try:
+        x.extend(acts[concept][bottleneck][:min_data_points].reshape(
+            min_data_points, -1))
+      except AttributeError:
+        x.extend(random.sample(acts[concept][bottleneck], min_data_points))
+
       labels.extend([i] * min_data_points)
       labels2text[i] = concept
     x = np.array(x)

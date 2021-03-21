@@ -5,6 +5,7 @@ ConceptDiscovery class that is able to discover the concepts belonging to one
 of the possible classification labels of the classification task of a network
 and calculate each concept's TCAV score..
 """
+from glob import glob
 from multiprocessing import dummy as multiprocessing
 import sys
 import os
@@ -669,20 +670,27 @@ class ConceptDiscovery(object):
     for bn in self.bottlenecks:
       for concept in self.dic[bn]['concepts']:
         concept_imgs = self.dic[bn][concept]['images']
-        concept_acts = get_acts_from_images(
-            concept_imgs, self.model, bn)
+        # concept_acts = get_acts_from_images(concept_imgs, self.model, bn) # <- Skip this
+        # Get concept activations from separate project - TODO: Change how activations loaded 
+        tmp_acts_dir = '../inm363-individual-project/acts'
+        concept_acts = []
+        for concept_img in concept_imgs:
+          layer, label, concept_label = concept_img.split('/')[-2].split('_')
+          image_acts = np.array([np.load(acts).squeeze() for acts in glob(f'{tmp_acts_dir}/{label}/acts_{label}_{concept_label}_*_{bn}')])
+          concept_acts.extend(image_acts)
+        
         acc[bn][concept] = self._concept_cavs(bn, concept, concept_acts, ow=ow)
-        if np.mean(acc[bn][concept]) < min_acc:
-          concepts_to_delete.append((bn, concept))
-      target_class_acts = get_acts_from_images(
-          self.discovery_images, self.model, bn)
-      acc[bn][self.target_class] = self._concept_cavs(
-          bn, self.target_class, target_class_acts, ow=ow)
-      rnd_acts = self._random_concept_activations(bn, self.random_concept)
-      acc[bn][self.random_concept] = self._concept_cavs(
-          bn, self.random_concept, rnd_acts, ow=ow)
-    for bn, concept in concepts_to_delete:
-      self.delete_concept(bn, concept)
+    #     if np.mean(acc[bn][concept]) < min_acc:
+    #       concepts_to_delete.append((bn, concept))
+    #   target_class_acts = get_acts_from_images(
+    #       self.discovery_images, self.model, bn)
+    #   acc[bn][self.target_class] = self._concept_cavs(
+    #       bn, self.target_class, target_class_acts, ow=ow)
+    #   rnd_acts = self._random_concept_activations(bn, self.random_concept)
+    #   acc[bn][self.random_concept] = self._concept_cavs(
+    #       bn, self.random_concept, rnd_acts, ow=ow)
+    # for bn, concept in concepts_to_delete:
+    #   self.delete_concept(bn, concept)
     return acc
 
   def load_cav_direction(self, c, r, bn, directory=None):
