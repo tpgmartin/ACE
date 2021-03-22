@@ -128,21 +128,18 @@ class CAV(object):
     min_data_points = np.min(
         [acts[concept][bottleneck].shape[0] for concept in acts.keys()])
 
-    print('min_data_points:', min_data_points)
     for i, concept in enumerate(concepts):
-      print('concept:', concept)
-      print(acts[concept][bottleneck])
-      print(random.sample(acts[concept][bottleneck], 1))
-    #   x.extend(random.sample(acts[concept][bottleneck], min_data_points).reshape(
-    #         min_data_points, -1))
-    # x.extend(acts[concept][bottleneck][:min_data_points].reshape(
-          # min_data_points, -1))
-    #   labels.extend([i] * min_data_points)
-    #   labels2text[i] = concept
-    
-    # print(x[0].shape)
-    # print(x[50].shape)
-    sdfsdf
+
+      if len(acts[concept][bottleneck]) > min_data_points:
+        # TODO: Need to update this
+        x.extend(acts[concept][bottleneck][20:min_data_points+20].reshape(min_data_points, -1))
+
+      else:
+        x.extend(acts[concept][bottleneck][:min_data_points].reshape(min_data_points, -1))
+      
+      labels.extend([i] * min_data_points)
+      labels2text[i] = concept
+
     x = np.array(x)
     labels = np.array(labels)
 
