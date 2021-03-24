@@ -91,13 +91,16 @@ def main(args):
         cd.dic[bn]['combined_concept']['images'] = images
 
     cav_accuracies = cd.cavs(min_acc=0.0) # <- skip most of cavs method - only want concept 
-    print(cav_accuracies)
 
     # TODO: Need to update how TCAV scores are created
-    # scores = cd.tcavs(test=False)
+    scores = cd.tcavs(test=False)
+    print(scores)
+    # * Load raw input images - see `raw_imgs = self.load_concept_imgs(self.target_class, 2 * self.max_imgs)`
+
+
     # Save ACE report <- Skip for now
-    # ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
-    #                                 results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
+    ace_helpers.save_ace_report(cd, cav_accuracies, scores,
+                                    results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
     # # Plot examples of discovered concepts <- Skip for now
     # for bn in cd.bottlenecks:
     #     ace_helpers.plot_concepts(cd, bn, args.target_class, 10, address=results_dir)

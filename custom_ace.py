@@ -11,6 +11,7 @@ import sys
 import os
 import numpy as np
 from PIL import Image
+import random
 import scipy.stats as stats
 import skimage.segmentation as segmentation
 import sklearn.cluster as cluster
@@ -784,8 +785,10 @@ class ConceptDiscovery(object):
     tcav_scores = {bn: {} for bn in self.bottlenecks}
     randoms = ['random500_{}'.format(i) for i in np.arange(self.num_random_exp)]
     if tcav_score_images is None:  # Load target class images if not given
-      raw_imgs = self.load_concept_imgs(self.target_class, 2 * self.max_imgs)
-      tcav_score_images = raw_imgs[-self.max_imgs:]
+      for bn in self.bottlenecks:
+        for concept in self.dic[bn]['concepts']:
+          raw_imgs = [load_image_from_file(image_file, self.image_shape) for image_file in self.dic[bn][concept]['images']]
+          tcav_score_images = random.sample(raw_imgs, self.max_imgs)
     gradients = self._return_gradients(tcav_score_images)
     for bn in self.bottlenecks:
       for concept in self.dic[bn]['concepts'] + [self.random_concept]:
