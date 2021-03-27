@@ -139,7 +139,10 @@ class CAV(object):
       
       labels.extend([i] * min_data_points)
       labels2text[i] = concept
-
+    print('len(x[0])')
+    print(len(x[0]))
+    print(x[0].shape)
+    print('---------------')
     x = np.array(x)
     labels = np.array(labels)
 

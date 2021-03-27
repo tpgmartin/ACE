@@ -74,9 +74,10 @@ def main(args):
 
     # Load concept super-pixels
     concept_images_dirs = [
-        'mixed8_ambulance_concept7',
-        'mixed8_jeep_concept3',
-        'mixed8_jeep_concept17'
+        'mixed8_restuarant_concept19',
+        'mixed8_ant_concept9'
+        # 'mixed8_jeep_concept3',
+        # 'mixed8_jeep_concept17'
     ]
 
     # images = [glob(f'{os.path.join(discovered_concepts_dir, concept_images_dir)}/*.png') for concept_images_dir in concept_images_dirs]
@@ -94,7 +95,6 @@ def main(args):
 
     # TODO: Need to update how TCAV scores are created
     scores = cd.tcavs(test=False)
-    print(scores)
     # * Load raw input images - see `raw_imgs = self.load_concept_imgs(self.target_class, 2 * self.max_imgs)`
 
 

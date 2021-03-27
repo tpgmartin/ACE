@@ -679,7 +679,13 @@ class ConceptDiscovery(object):
         #   concept_acts.extend(image_acts)
 
         concept_imgs = [load_image_from_file(image_file, self.image_shape) for image_file in self.dic[bn][concept]['images']]
+        print('concept_imgs[0].shape')
+        print(concept_imgs[0].shape)
+        print('---------------------')
         concept_acts = get_acts_from_images(concept_imgs, self.model, bn) # <- Skip this
+        print('concept_acts[0].shape')
+        print(concept_acts[0].shape)
+        print('---------------------')
         acc[bn][concept] = self._concept_cavs(bn, concept, concept_acts, ow=ow)
     #     if np.mean(acc[bn][concept]) < min_acc:
     #       concepts_to_delete.append((bn, concept))
