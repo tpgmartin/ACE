@@ -379,6 +379,8 @@ class ConceptDiscovery(object):
     Returns:
       The array of activations
     """
+    print('imgs.shape -------')
+    print(imgs.shape)
     if channel_mean is None:
       channel_mean = self.channel_mean
     if self.num_workers:
@@ -392,10 +394,16 @@ class ConceptDiscovery(object):
         output.append(
             self.model.run_examples(imgs[i * bs:(i + 1) * bs], bottleneck))
     output = np.concatenate(output, 0)
+    print('output.shape before >>>>>>>>>')
+    print(output.shape)
+    print([output.shape[0], -1])
     if channel_mean and len(output.shape) > 3:
+      print('output = np.reshape(output, [output.shape[0], -1])')
       output = np.mean(output, (1, 2))
     else:
       output = np.reshape(output, [output.shape[0], -1])
+    print('output.shape after +++++++++++')
+    print(output.shape)
     return output
 
   def _cluster(self, acts, method='KM', param_dict=None):
@@ -505,6 +513,7 @@ class ConceptDiscovery(object):
     for bn in self.bottlenecks:
       bn_dic = {}
       if activations is None or bn not in activations.keys():
+        print('Calling _patch_activations >>>>>>>>>>')
         bn_activations = self._patch_activations(self.dataset, bn)
       else:
         # print("activations:", activations)

@@ -131,18 +131,24 @@ class CAV(object):
     for i, concept in enumerate(concepts):
 
       if len(acts[concept][bottleneck]) > min_data_points:
-        # TODO: Need to update this
-        x.extend(acts[concept][bottleneck][20:min_data_points+20].reshape(min_data_points, -1))
+        # TODO: Need to generalise to more than two labels
+        sample = []
+        for idx in [random.randint(0,40) for _ in range(20)]:
+          sample.extend(acts[concept][bottleneck][idx])
+        
+        for idx in [random.randint(40,79) for _ in range(20)]:
+          sample.extend(acts[concept][bottleneck][idx])
+        
+        sample = np.array(sample)
+        sample = sample.reshape(min_data_points,-1)
+        x.extend(sample)
 
       else:
         x.extend(acts[concept][bottleneck][:min_data_points].reshape(min_data_points, -1))
       
       labels.extend([i] * min_data_points)
       labels2text[i] = concept
-    print('len(x[0])')
-    print(len(x[0]))
-    print(x[0].shape)
-    print('---------------')
+
     x = np.array(x)
     labels = np.array(labels)
 

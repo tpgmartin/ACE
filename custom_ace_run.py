@@ -74,15 +74,18 @@ def main(args):
 
     # Load concept super-pixels
     concept_images_dirs = [
-        'mixed8_restuarant_concept19',
-        'mixed8_ant_concept9'
-        # 'mixed8_jeep_concept3',
-        # 'mixed8_jeep_concept17'
+        'mixed8_jeep_concept5',
+        # 'mixed8_ambulance_concept9',
+        'mixed8_cab_concept8',
+        # 'mixed8_shopping_cart_concept14',
     ]
 
     # images = [glob(f'{os.path.join(discovered_concepts_dir, concept_images_dir)}/*.png') for concept_images_dir in concept_images_dirs]
     images = [glob(f'{os.path.join(discovered_concepts_dir, concept_images_dir)}/*.png') for concept_images_dir in concept_images_dirs]
     images = [image for nested_images in images for image in nested_images]
+
+    print(len(images))
+    print(images)
 
     cd.dic = {} # not initialised elsewhere as skip concept discovery steps
     for bn in cd.bottlenecks:
@@ -100,7 +103,7 @@ def main(args):
 
     # Save ACE report <- Skip for now
     ace_helpers.save_ace_report(cd, cav_accuracies, scores,
-                                    results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
+                                    results_summaries_dir + f'{args.bottlenecks}_{concept_images_dirs[0]}_{concept_images_dirs[1]}_ace_results.txt')
     # # Plot examples of discovered concepts <- Skip for now
     # for bn in cd.bottlenecks:
     #     ace_helpers.plot_concepts(cd, bn, args.target_class, 10, address=results_dir)
