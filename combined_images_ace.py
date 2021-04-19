@@ -723,7 +723,7 @@ class ConceptDiscovery(object):
         concepts.append(self.dic[bn]['concepts'][idx])
       self.dic[bn]['concepts'] = concepts
 
-  def _return_gradients(self, images):
+  def _return_gradients(self, all_images, filenames):
     """For the given images calculates the gradient tensors.
 
     Args:
@@ -734,14 +734,28 @@ class ConceptDiscovery(object):
     """
 
     gradients = {}
-    class_id = self.model.label_to_id(self.target_class.replace('_', ' '))
     for bn in self.bottlenecks:
-      acts = get_acts_from_images(images, self.model, bn)
-      bn_grads = np.zeros((acts.shape[0], np.prod(acts.shape[1:])))
-      for i in range(len(acts)):
-        bn_grads[i] = self.model.get_gradient(
-            acts[i:i+1], [class_id], bn).reshape(-1)
-      gradients[bn] = bn_grads
+      for label in self.target_class.split('_and_'):
+
+        if label == 'jeep':
+          relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n03594945' in filename]
+        elif label == 'ambulance':
+          relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n02701002' in filename]
+        elif label == 'bullet_train':
+          relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n02917067' in filename]
+        
+        images = []
+        for idx in relevant_image_idxs:
+          images.append(all_images[idx])
+        
+        class_id = self.model.label_to_id(label.replace('_', ' '))
+
+        acts = get_acts_from_images(images, self.model, bn)
+        bn_grads = np.zeros((acts.shape[0], np.prod(acts.shape[1:])))
+        for i in range(len(acts)):
+          bn_grads[i] = self.model.get_gradient(
+              acts[i:i+1], [class_id], bn).reshape(-1)
+        gradients[bn] = bn_grads
     return gradients
 
   def _tcav_score(self, bn, concept, rnd, gradients):
@@ -784,9 +798,11 @@ class ConceptDiscovery(object):
     tcav_scores = {bn: {} for bn in self.bottlenecks}
     randoms = ['random500_{}'.format(i) for i in np.arange(self.num_random_exp)]
     if tcav_score_images is None:  # Load target class images if not given
-      raw_imgs = self.load_concept_imgs(self.target_class, 2 * self.max_imgs)
+      raw_imgs, final_filenames = self.load_concept_imgs(self.target_class, 2 * self.max_imgs, return_filenames=True)
       tcav_score_images = raw_imgs[-self.max_imgs:]
-    gradients = self._return_gradients(tcav_score_images)
+      tcav_score_image_filenames = final_filenames[-self.max_imgs:]
+    # Define gradients by concept - not input images
+    gradients = self._return_gradients(tcav_score_images, tcav_score_image_filenames)
     for bn in self.bottlenecks:
       for concept in self.dic[bn]['concepts'] + [self.random_concept]:
         def t_func(rnd):

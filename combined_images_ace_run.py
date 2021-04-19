@@ -12,7 +12,7 @@ from tcav import utils
 import tensorflow as tf
 
 import ace_helpers
-from ace import ConceptDiscovery
+from combined_images_ace import ConceptDiscovery
 import argparse
 
 
@@ -47,16 +47,13 @@ def main(args):
   # Creating the dataset of image patches
   cd.create_patches(param_dict={'n_segments': [15, 50, 80]})
 
-  # Break here
-  sdfgdsfsd
-
   # Saving the concept discovery target class images
-  image_dir = os.path.join(discovered_concepts_dir, 'images')
+  image_dir = os.path.join(discovered_concepts_dir, 'images', args.target_class)
   tf.gfile.MakeDirs(image_dir)
   ace_helpers.save_images(image_dir,
                             (cd.discovery_images * 256).astype(np.uint8))
   # Discovering Concepts
-  cd.discover_concepts(method='KM', param_dicts={'n_clusters': 3})
+  cd.discover_concepts(method='KM', param_dicts={'n_clusters': 25})
   del cd.dataset  # Free memory
   del cd.image_numbers
   del cd.patches
@@ -66,10 +63,10 @@ def main(args):
   cav_accuraciess = cd.cavs(min_acc=0.0)
   scores = cd.tcavs(test=False)
   ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
-                                 results_summaries_dir + 'ace_results.txt')
+                                    results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
   # Plot examples of discovered concepts
   for bn in cd.bottlenecks:
-    ace_helpers.plot_concepts(cd, bn, 10, address=results_dir)
+    ace_helpers.plot_concepts(cd, bn, args.target_class, 10, address=results_dir)
   # Delete concepts that don't pass statistical testing
   cd.test_and_remove_concepts(scores)
 
@@ -111,14 +108,17 @@ def parse_arguments(argv):
 
 if __name__ == '__main__':
 
-    combined_label = 'ambulance_and_jeep'
+    args = parse_arguments(sys.argv[1:])
+    combined_label = 'ambulance_and_police_van'
 
     samples = [
         '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv'
+        '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
     ]
 
-    df = pd.concat([pd.read_csv(sample) for sample in samples])
+    df = pd.concat([pd.read_csv(sample).iloc[:(args.max_imgs//2),:] for sample in samples])
     true_label = combined_label
     sample_dir_path = f'./ImageNet/ILSVRC2012_img_train/{combined_label}/img_sample'
     filepaths = df['filename']
@@ -136,7 +136,7 @@ if __name__ == '__main__':
         random_dir_name = random_dir.split('/')[-1]
         copy_tree(random_dir, f'./ImageNet/ILSVRC2012_img_train/{combined_label}/img_sample/{random_dir_name}')
 
-    args = parse_arguments(sys.argv[1:])
+    
     args.model_to_run = 'InceptionV3'
     args.model_path = './inception_v3.h5'
     args.bottlenecks = 'mixed8'
