@@ -573,10 +573,7 @@ class ConceptDiscovery(object):
             bn_dic[concept + '_center'] = centers[i]
 
             report += f'concept: {concept}\n'
-            report += f'images: {self.dataset[concept_idxs]}\n'
-            report += f'patches: {self.patches[concept_idxs]}\n'
             report += f'image_numbers: {self.image_numbers[concept_idxs]}\n'
-            report += f'{concept}+_center: {centers[i]}'
           
           report += '\n\n'
       bn_dic.pop('label', None)
@@ -744,8 +741,7 @@ class ConceptDiscovery(object):
       tcavs = []
       for concept in self.dic[bn]['concepts']:
         # Need to flatten nested dictionary of form,
-        # {'mixed8': {'ambulance_and_police_van_concept1': [{'ambulance': 0.35, 'police_van': 0.35, 'overall': 0.35}, {'ambulance': 0.15, 'police_van': 0.15, 'overall': 0.15}
-        tcavs.append(np.mean(scores[bn][concept]['overall']))
+        tcavs.append(np.mean([scores['overall'] for scores in scores[bn][concept]]))
       concepts = []
       for idx in np.argsort(tcavs)[::-1]:
         concepts.append(self.dic[bn]['concepts'][idx])
@@ -861,9 +857,6 @@ class ConceptDiscovery(object):
     if test:
       self.test_and_remove_concepts(tcav_scores)
     if sort:
-      print('tcav_scores ~~~~~~~~~~~~~~~~~')
-      print(tcav_scores)
-      print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
       self._sort_concepts(tcav_scores)
     # print("====================")
     return tcav_scores
