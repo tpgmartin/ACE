@@ -510,6 +510,9 @@ class ConceptDiscovery(object):
     if set(param_dicts.keys()) != set(self.bottlenecks):
       param_dicts = {bn: param_dicts for bn in self.bottlenecks}
     self.dic = {}  ## The main dictionary of the ConceptDiscovery class.
+
+    report = '---- Concept Discovery Report ----\n\n'
+
     for bn in self.bottlenecks:
       bn_dic = {}
       if activations is None or bn not in activations.keys():
@@ -524,7 +527,6 @@ class ConceptDiscovery(object):
       # print("bn_dic['cost']:", bn_dic['cost'])
       concept_number, bn_dic['concepts'] = 0, []
       for i in range(bn_dic['label'].max() + 1):
-        print('label:', i)
         label_idxs = np.where(bn_dic['label'] == i)[0]
         if len(label_idxs) > self.min_imgs:
           concept_costs = bn_dic['cost'][label_idxs]
@@ -543,11 +545,22 @@ class ConceptDiscovery(object):
           highly_populated_concept = len(
               concept_image_numbers) > 0.5 * discovery_size
           cond3 = non_common_concept and highly_populated_concept
-          print('label:', i)
-          print('highly_common_concept:', highly_common_concept)
-          print('cond2:', cond2)
-          print('cond3:', cond3)
-          print('---------')
+
+          report += f'label: {i}\n'
+          report += 'Prerequisites:\n'
+          report += f'len(concept_image_numbers): {len(concept_image_numbers)}\n'
+          report += f'len(label_idxs): {len(label_idxs)}\n'
+          report += f'discovery_size: {discovery_size}\n\n'
+          report += 'Conditions:\n'
+          report += f'highly_common_concept: {highly_common_concept}\n'
+          report += f'mildly_populated_concept: {mildly_populated_concept}\n'
+          report += f'mildly_common_concept: {mildly_common_concept}\n'
+          report += f'mildly_populated_concept and mildly_common_concept: {cond2}\n'
+          report += f'non_common_concept: {non_common_concept}\n'
+          report += f'highly_populated_concept: {highly_populated_concept}\n'
+          report += f'non_common_concept and highly_populated_concept: {cond3}\n'
+          report += f'concept_is_acceptable: {(highly_common_concept or cond2 or cond3)}\n\n'
+
           if highly_common_concept or cond2 or cond3:
             concept_number += 1
             concept = '{}_concept{}'.format(self.target_class, concept_number)
@@ -558,9 +571,22 @@ class ConceptDiscovery(object):
                 'image_numbers': self.image_numbers[concept_idxs]
             }
             bn_dic[concept + '_center'] = centers[i]
+
+            report += f'concept: {concept}\n'
+            report += f'images: {self.dataset[concept_idxs]}\n'
+            report += f'patches: {self.patches[concept_idxs]}\n'
+            report += f'image_numbers: {self.image_numbers[concept_idxs]}\n'
+            report += f'{concept}+_center: {centers[i]}'
+          
+          report += '\n\n'
       bn_dic.pop('label', None)
       bn_dic.pop('cost', None)
       self.dic[bn] = bn_dic
+
+      address = f'./ACE/concept_discovery_results/mixed_8_{self.target_class}_results.txt'
+      with tf.gfile.Open(address, 'w') as f:
+        f.write(report)
+
 
   def _random_concept_activations(self, bottleneck, random_concept):
     """Wrapper for computing or loading activations of random concepts.
@@ -717,7 +743,9 @@ class ConceptDiscovery(object):
     for bn in self.bottlenecks:
       tcavs = []
       for concept in self.dic[bn]['concepts']:
-        tcavs.append(np.mean(scores[bn][concept]))
+        # Need to flatten nested dictionary of form,
+        # {'mixed8': {'ambulance_and_police_van_concept1': [{'ambulance': 0.35, 'police_van': 0.35, 'overall': 0.35}, {'ambulance': 0.15, 'police_van': 0.15, 'overall': 0.15}
+        tcavs.append(np.mean(scores[bn][concept]['overall']))
       concepts = []
       for idx in np.argsort(tcavs)[::-1]:
         concepts.append(self.dic[bn]['concepts'][idx])
@@ -755,7 +783,10 @@ class ConceptDiscovery(object):
         for i in range(len(acts)):
           bn_grads[i] = self.model.get_gradient(
               acts[i:i+1], [class_id], bn).reshape(-1)
-        gradients[bn] = bn_grads
+
+        gradients[label] = {}
+        gradients[label][bn] = bn_grads
+
     return gradients
 
   def _tcav_score(self, bn, concept, rnd, gradients):
@@ -771,8 +802,19 @@ class ConceptDiscovery(object):
       TCAV score of the concept with respect to the given random counterpart
     """
     vector = self.load_cav_direction(concept, rnd, bn)
-    prod = np.sum(gradients[bn] * vector, -1)
-    return np.mean(prod < 0)
+
+    tcav_scores = {}
+    overall_prod = []
+    for label in gradients.keys():
+
+        prod = np.sum(gradients[label][bn] * vector, -1)
+        overall_prod.extend(prod)
+        tcav_scores[label] = np.mean(prod < 0)
+    
+    overall_tcav = np.sum([score for label, score in tcav_scores.items()]) / len(gradients.keys())
+    tcav_scores['overall'] = overall_tcav
+
+    return tcav_scores
 
   def tcavs(self, test=False, sort=True, tcav_score_images=None):
     """Calculates TCAV scores for all discovered concepts and sorts concepts.
@@ -819,6 +861,9 @@ class ConceptDiscovery(object):
     if test:
       self.test_and_remove_concepts(tcav_scores)
     if sort:
+      print('tcav_scores ~~~~~~~~~~~~~~~~~')
+      print(tcav_scores)
+      print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
       self._sort_concepts(tcav_scores)
     # print("====================")
     return tcav_scores

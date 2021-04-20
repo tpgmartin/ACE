@@ -62,6 +62,7 @@ def main(args):
   # Calculating CAVs and TCAV scores
   cav_accuraciess = cd.cavs(min_acc=0.0)
   scores = cd.tcavs(test=False)
+  print(scores)
   ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
                                     results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
   # Plot examples of discovered concepts
