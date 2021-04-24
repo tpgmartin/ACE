@@ -467,7 +467,7 @@ def save_ace_report(cd, accs, scores, address):
 
     for concept in cd.dic[bn]['concepts']:
 
-      for label in scores[bn][concept].keys():
+      for label in scores[bn][concept][0].keys():
 
         scores = [scores[label] for scores in scores[bn][concept]]
 
@@ -485,7 +485,7 @@ def save_ace_report(cd, accs, scores, address):
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
 
-      for label in scores[bn][concept].keys():
+      for label in scores[bn][concept][0].keys():
 
         scores = [scores[label] for scores in scores[bn][concept]]
 

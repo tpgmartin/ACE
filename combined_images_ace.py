@@ -768,6 +768,8 @@ class ConceptDiscovery(object):
           relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n02701002' in filename]
         elif label == 'bullet_train':
           relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n02917067' in filename]
+        elif label == 'police_van':
+          relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n03977966' in filename]
         
         images = []
         for idx in relevant_image_idxs:
