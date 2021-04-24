@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 import tcav.model as model
 import numpy as np
+import pandas as pd
 from PIL import Image
 from skimage.segmentation import mark_boundaries
 from sklearn import linear_model
@@ -540,3 +541,30 @@ def save_images(addresses, images):
     with tf.gfile.Open(address, 'w') as f:
       Image.fromarray(image).save(f, format='PNG')
 
+def save_images_lookup(images, target_class, label_mapping):
+
+  img_names = []
+  imgs = []
+  img_file_paths = []
+  labels = []
+
+  for i, img_file in enumerate(images):
+
+    image_name = '0' * (3 - int(np.log10(i + 1))) + str(i + 1) + '.png'
+    image = img_file.split('/')[-1]
+    image_code = image.split('_')[0]
+    label = label_mapping[image_code]
+
+    img_names.append(image_name)
+    imgs.append(image)
+    labels.append(label)
+    img_file_paths.append(img_file)
+  
+  df = pd.DataFrame({
+    'img_name': img_names,
+    'img': imgs,
+    'label': labels,
+    'img_file_path': img_file_paths
+  })
+
+  df.to_csv(f'./ACE/concepts/images_index_lookup/{target_class}.csv',index=False)

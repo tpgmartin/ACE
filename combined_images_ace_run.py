@@ -52,6 +52,7 @@ def main(args):
   tf.gfile.MakeDirs(image_dir)
   ace_helpers.save_images(image_dir,
                             (cd.discovery_images * 256).astype(np.uint8))
+  ace_helpers.save_images_lookup(cd.discovery_image_filenames, args.target_class, args.label_mapping)
   # Discovering Concepts
   cd.discover_concepts(method='KM', param_dicts={'n_clusters': 25})
   del cd.dataset  # Free memory
@@ -144,6 +145,10 @@ if __name__ == '__main__':
 
     args.source_dir = sample_dir_path
     args.target_class = combined_label
+    args.label_mapping = {
+        'n02701002': 'ambulance',
+        'n03977966': 'police_van'
+    }
 
     main(args)
 

@@ -186,9 +186,10 @@ class ConceptDiscovery(object):
     if discovery_images is None:
       print('self.target_class', self.target_class)
       print('self.num_discovery_imgs', self.num_discovery_imgs)
-      raw_imgs = self.load_concept_imgs(
-          self.target_class, self.num_discovery_imgs)
+      raw_imgs, filenames = self.load_concept_imgs(
+          self.target_class, self.num_discovery_imgs, return_filenames=True)
       self.discovery_images = raw_imgs
+      self.discovery_image_filenames = filenames
     else:
       self.discovery_images = discovery_images
     if self.num_workers:
