@@ -463,22 +463,21 @@ def save_ace_report(cd, accs, scores, address):
   for bn in cd.bottlenecks:
     report += '\n'
 
-    # tcavs.append(np.mean([scores['overall'] for scores in scores[bn][concept]]))
-
     for concept in cd.dic[bn]['concepts']:
 
       for label in scores[bn][concept][0].keys():
 
-        scores = [scores[label] for scores in scores[bn][concept]]
+        label_scores = [scores[label] for scores in scores[bn][concept]]
+        random_scores = [scores['overall'] for scores in scores[bn][cd.random_concept]]
 
         if label == 'overall':
           pvalue = cd.do_statistical_testings(
-            scores, scores[bn][cd.random_concept])
+            label_scores, random_scores)
         else:
           pvalue = 'N/A'
 
         report += '\n{}:{}:{}:{}±{},{}'.format(bn, concept, label,
-                                       np.mean(scores), np.std(scores[bn][concept]), pvalue)
+                                       np.mean(label_scores), np.std(label_scores), pvalue)
   # Get all TCAV scores
   report += '\n\t\t\t ---Raw TCAV scores data---'
   for bn in cd.bottlenecks:
@@ -487,9 +486,9 @@ def save_ace_report(cd, accs, scores, address):
 
       for label in scores[bn][concept][0].keys():
 
-        scores = [scores[label] for scores in scores[bn][concept]]
+        label_scores = [scores[label] for scores in scores[bn][concept]]
 
-        report += '\n{}:{}:{}:{}'.format(bn, concept, label, scores)
+        report += '\n{}:{}:{}:{}'.format(bn, concept, label, label_scores)
   with tf.gfile.Open(address, 'w') as f:
     f.write(report)
 
