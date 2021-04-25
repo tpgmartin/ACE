@@ -430,8 +430,50 @@ def similarity(cd, num_random_exp=None, num_workers=25):
         similarity_dic[bn][pair].append(sim[pair])
   return similarity_dic
 
-
 def save_ace_report(cd, accs, scores, address):
+  """Saves TCAV scores.
+  Saves the average CAV accuracies and average TCAV scores of the concepts
+  discovered in ConceptDiscovery instance.
+  Args:
+    cd: The ConceptDiscovery instance.
+    accs: The cav accuracy dictionary returned by cavs method of the
+      ConceptDiscovery instance
+    scores: The tcav score dictionary returned by tcavs method of the
+      ConceptDiscovery instance
+    address: The address to save the text file in.
+  """
+  report = '\n\n\t\t\t ---CAV accuracies---'
+  for bn in cd.bottlenecks:
+    report += '\n'
+    for concept in cd.dic[bn]['concepts']:
+      report += '\n' + bn + ':' + concept + ':' + str(
+          np.mean(accs[bn][concept])) + '±' + str(
+            np.std(accs[bn][concept]))
+  # Get all CAV accuracies
+  report += '\n\t\t\t ---Raw CAV accuracies data---'
+  for bn in cd.bottlenecks:
+    report += '\n'
+    for concept in cd.dic[bn]['concepts']:
+      report += '\n' + bn + ':' + concept + ':' + str(
+          accs[bn][concept])
+  report += '\n\n\t\t\t ---TCAV scores---'
+  for bn in cd.bottlenecks:
+    report += '\n'
+    for concept in cd.dic[bn]['concepts']:
+      pvalue = cd.do_statistical_testings(
+          scores[bn][concept], scores[bn][cd.random_concept])
+      report += '\n{}:{}:{}±{},{}'.format(bn, concept,
+                                       np.mean(scores[bn][concept]), np.std(scores[bn][concept]), pvalue)
+  # Get all TCAV scores
+  report += '\n\t\t\t ---Raw TCAV scores data---'
+  for bn in cd.bottlenecks:
+    report += '\n'
+    for concept in cd.dic[bn]['concepts']:
+      report += '\n{}:{}:{}'.format(bn, concept, scores[bn][concept])
+  with tf.gfile.Open(address, 'w') as f:
+    f.write(report)
+
+def save_ace_report_combined_images(cd, accs, scores, address):
   """Saves TCAV scores.
 
   Saves the average CAV accuracies and average TCAV scores of the concepts
@@ -468,13 +510,9 @@ def save_ace_report(cd, accs, scores, address):
       for label in scores[bn][concept][0].keys():
 
         label_scores = [scores[label] for scores in scores[bn][concept]]
-        random_scores = [scores['overall'] for scores in scores[bn][cd.random_concept]]
+        random_scores = [scores[label] for scores in scores[bn][cd.random_concept]]
 
-        if label == 'overall':
-          pvalue = cd.do_statistical_testings(
-            label_scores, random_scores)
-        else:
-          pvalue = 'N/A'
+        pvalue = cd.do_statistical_testings(label_scores, random_scores)
 
         report += '\n{}:{}:{}:{}±{},{}'.format(bn, concept, label,
                                        np.mean(label_scores), np.std(label_scores), pvalue)

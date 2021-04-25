@@ -510,6 +510,9 @@ class ConceptDiscovery(object):
     if set(param_dicts.keys()) != set(self.bottlenecks):
       param_dicts = {bn: param_dicts for bn in self.bottlenecks}
     self.dic = {}  ## The main dictionary of the ConceptDiscovery class.
+
+    report = '---- Concept Discovery Report ----\n\n'
+
     for bn in self.bottlenecks:
       bn_dic = {}
       if activations is None or bn not in activations.keys():
@@ -543,11 +546,22 @@ class ConceptDiscovery(object):
           highly_populated_concept = len(
               concept_image_numbers) > 0.5 * discovery_size
           cond3 = non_common_concept and highly_populated_concept
-          print('label:', i)
-          print('highly_common_concept:', highly_common_concept)
-          print('cond2:', cond2)
-          print('cond3:', cond3)
-          print('---------')
+
+          report += f'label: {i}\n'
+          report += 'Prerequisites:\n'
+          report += f'len(concept_image_numbers): {len(concept_image_numbers)}\n'
+          report += f'len(label_idxs): {len(label_idxs)}\n'
+          report += f'discovery_size: {discovery_size}\n\n'
+          report += 'Conditions:\n'
+          report += f'highly_common_concept: {highly_common_concept}\n'
+          report += f'mildly_populated_concept: {mildly_populated_concept}\n'
+          report += f'mildly_common_concept: {mildly_common_concept}\n'
+          report += f'mildly_populated_concept and mildly_common_concept: {cond2}\n'
+          report += f'non_common_concept: {non_common_concept}\n'
+          report += f'highly_populated_concept: {highly_populated_concept}\n'
+          report += f'non_common_concept and highly_populated_concept: {cond3}\n'
+          report += f'concept_is_acceptable: {(highly_common_concept or cond2 or cond3)}\n\n'
+
           if highly_common_concept or cond2 or cond3:
             concept_number += 1
             concept = '{}_concept{}'.format(self.target_class, concept_number)
@@ -558,9 +572,18 @@ class ConceptDiscovery(object):
                 'image_numbers': self.image_numbers[concept_idxs]
             }
             bn_dic[concept + '_center'] = centers[i]
+
+            report += f'concept: {concept}\n'
+            report += f'image_numbers: {self.image_numbers[concept_idxs]}\n'
+
+          report += '\n\n'
       bn_dic.pop('label', None)
       bn_dic.pop('cost', None)
       self.dic[bn] = bn_dic
+
+      address = f'./ACE/concept_discovery_results/mixed_8_{self.target_class}_results.txt'
+      with tf.gfile.Open(address, 'w') as f:
+        f.write(report)
 
   def _random_concept_activations(self, bottleneck, random_concept):
     """Wrapper for computing or loading activations of random concepts.

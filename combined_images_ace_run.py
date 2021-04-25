@@ -63,13 +63,13 @@ def main(args):
   # Calculating CAVs and TCAV scores
   cav_accuraciess = cd.cavs(min_acc=0.0)
   scores = cd.tcavs(test=False)
-  ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
+  ace_helpers.save_ace_report_combined_images(cd, cav_accuraciess, scores,
                                     results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
   # Plot examples of discovered concepts
   for bn in cd.bottlenecks:
     ace_helpers.plot_concepts(cd, bn, args.target_class, 10, address=results_dir)
   # Delete concepts that don't pass statistical testing
-  cd.test_and_remove_concepts(scores)
+#   cd.test_and_remove_concepts(scores) # <- TODO: update following changes to scores object
 
 def parse_arguments(argv):
   """Parses the arguments passed to the run.py script."""
@@ -110,13 +110,13 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    combined_label = 'ambulance_and_police_van'
+    combined_label = 'ambulance_and_bullet_train'
 
     samples = [
         '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv'
-        '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
+        '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv'
+        # '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
     ]
 
     df = pd.concat([pd.read_csv(sample).iloc[:(args.max_imgs//2),:] for sample in samples])
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     args.target_class = combined_label
     args.label_mapping = {
         'n02701002': 'ambulance',
-        'n03977966': 'police_van'
+        'n02917067': 'bullet_train'
     }
 
     main(args)
