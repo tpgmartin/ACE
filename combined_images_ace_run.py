@@ -110,13 +110,13 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    combined_label = 'ambulance_and_bullet_train'
+    combined_label = 'ambulance_and_jeep'
 
     samples = [
         '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv'
-        # '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
+        # '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv'
+        '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv'
     ]
 
     df = pd.concat([pd.read_csv(sample).iloc[:(args.max_imgs//2),:] for sample in samples])
@@ -139,14 +139,14 @@ if __name__ == '__main__':
 
     
     args.model_to_run = 'InceptionV3'
-    args.model_path = './inception_v3.h5'
+    args.model_path = './v3_model.h5'
     args.bottlenecks = 'mixed8'
 
     args.source_dir = sample_dir_path
     args.target_class = combined_label
     args.label_mapping = {
         'n02701002': 'ambulance',
-        'n02917067': 'bullet_train'
+        'n03594945': 'jeep'
     }
 
     main(args)

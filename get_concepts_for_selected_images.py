@@ -117,6 +117,7 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     samples = [
+        # '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/antbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lipstickbaseline_prediction_samples.csv',
@@ -132,7 +133,8 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/volleyballbaseline_prediction_samples.csv'
+        # '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
+        # '../inm363-individual-project/baseline_prediction_samples/moving_vanbaseline_prediction_samples.csv'
     ]
 
     for sample in samples:
@@ -159,7 +161,7 @@ if __name__ == '__main__':
 
         args = parse_arguments(sys.argv[1:])
         args.model_to_run = 'InceptionV3'
-        args.model_path = './inception_v3.h5'
+        args.model_path = './v3_model.h5'
         args.bottlenecks = 'mixed8'
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
