@@ -110,12 +110,12 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    combined_label = 'ambulance_and_jeep'
+    combined_label = 'jeep_and_bullet_train'
 
     samples = [
-        '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv'
         '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv'
+        '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv'
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv'
     ]
 
@@ -138,15 +138,16 @@ if __name__ == '__main__':
         copy_tree(random_dir, f'./ImageNet/ILSVRC2012_img_train/{combined_label}/img_sample/{random_dir_name}')
 
     
-    args.model_to_run = 'InceptionV3'
-    args.model_path = './v3_model.h5'
-    args.bottlenecks = 'mixed8'
+    # args.model_to_run = 'InceptionV3'
+    # args.model_path = './v3_model.h5'
+    # args.bottlenecks = 'mixed8'
 
     args.source_dir = sample_dir_path
     args.target_class = combined_label
     args.label_mapping = {
-        'n02701002': 'ambulance',
-        'n03594945': 'jeep'
+        'n03594945': 'jeep',
+        'n02917067': 'bullet_train'
+        # 'n03977966': 'police_van'
     }
 
     main(args)

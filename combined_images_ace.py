@@ -581,7 +581,7 @@ class ConceptDiscovery(object):
       bn_dic.pop('cost', None)
       self.dic[bn] = bn_dic
 
-      address = f'./ACE/concept_discovery_results/mixed_8_{self.target_class}_results.txt'
+      address = f'./ACE/concept_discovery_results/{self.bottlenecks}_{self.target_class}_results.txt'
       with tf.gfile.Open(address, 'w') as f:
         f.write(report)
 
@@ -772,6 +772,8 @@ class ConceptDiscovery(object):
           relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n02917067' in filename]
         elif label == 'police_van':
           relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n03977966' in filename]
+        elif label == 'mantis':
+          relevant_image_idxs = [idx for (idx, filename) in enumerate(filenames) if 'n02236044' in filename]
         
         images = []
         for idx in relevant_image_idxs:

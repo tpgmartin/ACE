@@ -98,7 +98,7 @@ def parse_arguments(argv):
       help='The name of the target class to be interpreted', default='dumbbell')
   parser.add_argument('--bottlenecks', type=str,
       help='Names of the target layers of the network (comma separated)',
-                      default='mixed5b')
+                      default='mixed4c')
   parser.add_argument('--num_random_exp', type=int,
       help="Number of random experiments used for statistical testing, etc",
                       default=20)
@@ -117,8 +117,8 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     samples = [
-        # '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
+        '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv',
+        '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/antbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lipstickbaseline_prediction_samples.csv',
         '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
@@ -133,7 +133,7 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
+        '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
         # '../inm363-individual-project/baseline_prediction_samples/moving_vanbaseline_prediction_samples.csv'
     ]
 
@@ -160,9 +160,9 @@ if __name__ == '__main__':
             copy_tree(random_dir, f'./ImageNet/ILSVRC2012_img_train/{img_code}/img_sample/{random_dir_name}')
 
         args = parse_arguments(sys.argv[1:])
-        args.model_to_run = 'InceptionV3'
-        args.model_path = './v3_model.h5'
-        args.bottlenecks = 'mixed8'
+        # args.model_to_run = 'InceptionV3'
+        # args.model_path = './v3_model.h5'
+        # args.bottlenecks = 'mixed6'
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
 
