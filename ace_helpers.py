@@ -20,7 +20,8 @@ from keras.applications.inception_v3 import InceptionV3
 import keras.backend as K
 from keras.layers import Input
 from keras.models import load_model
-from wrapper import KerasModelWrapper
+import custom_tcav_model
+import wrapper
 
 def make_model(sess, model_to_run, model_path, 
                labels_path, randomize=False,):
@@ -39,24 +40,41 @@ def make_model(sess, model_to_run, model_path,
   Raises:
     ValueError: If model name is not valid.
   """
-  if model_to_run == 'InceptionV3':
+  # TODO: Refactor control flow
+  print('CHECK ++++++++++')
+  print(model_to_run)
+  print(model_path)
+  print(labels_path)
+  print('++++++++++++++++')
+
+  print(model)
+
+  if model_to_run == 'ResNet152V2':
+
+      mymodel = custom_tcav_model.KerasModelWrapper(sess,
+        model_path, labels_path)
+
+  elif model_to_run == 'InceptionV3':
     if '.h5' in model_path:
       print('###### Load h5 model ######')
       mymodel = load_model(model_path)
 
-      endpoints_v3 = dict(
+      endpoints = dict(
         input=mymodel.inputs[0].name,
         input_tensor=mymodel.inputs[0],
         logit=mymodel.outputs[0].name,
         prediction=mymodel.outputs[0].name,
         prediction_tensor=mymodel.outputs[0])
 
-      mymodel = KerasModelWrapper(sess,
-        labels_path, [299, 299, 3], endpoints_v3,
+      print(endpoints)
+
+      mymodel = wrapper.KerasModelWrapper(sess,
+        labels_path, [299, 299, 3], endpoints,
         'InceptionV3_public', (-1, 1))
     else:
       mymodel = model.InceptionV3Wrapper_public(
         sess, model_saved_path=model_path, labels_path=labels_path)
+  # TODO: Need to update logic here
   elif model_to_run == 'GoogleNet':
     # common_typos_disable
     mymodel = model.GoolgeNetWrapper_public(
@@ -280,7 +298,7 @@ def binary_dataset(pos, neg, balanced=True):
   return x, y
 
 
-def plot_concepts(cd, bn, target_class, num=10, address=None, mode='diverse', concepts=None):
+def plot_concepts(cd, bn, target_class, num=10, address=None, mode='diverse', concepts=None, is_cropped=False):
   """Plots examples of discovered concepts.
 
   Args:
@@ -350,7 +368,8 @@ def plot_concepts(cd, bn, target_class, num=10, address=None, mode='diverse', co
       fig.add_subplot(ax)
   plt.suptitle(bn)
   if address is not None:
-    with tf.gfile.Open(address +  bn + '_' + target_class + '.png', 'w') as f:
+    target_class_filename = f'{target_class}_cropped' if is_cropped else target_class
+    with tf.gfile.Open(address +  bn + '_' + target_class_filename + '.png', 'w') as f:
       fig.savefig(f)
     plt.clf()
     plt.close(fig)
@@ -430,7 +449,7 @@ def similarity(cd, num_random_exp=None, num_workers=25):
         similarity_dic[bn][pair].append(sim[pair])
   return similarity_dic
 
-def save_ace_report(cd, accs, scores, address):
+def save_ace_report(cd, accs, scores, address, all_bottlenecks=False):
   """Saves TCAV scores.
   Saves the average CAV accuracies and average TCAV scores of the concepts
   discovered in ConceptDiscovery instance.
@@ -442,8 +461,13 @@ def save_ace_report(cd, accs, scores, address):
       ConceptDiscovery instance
     address: The address to save the text file in.
   """
+  if all_bottlenecks:
+    bns = ['all']
+  else:
+    bns = cd.bottlenecks
+
   report = '\n\n\t\t\t ---CAV accuracies---'
-  for bn in cd.bottlenecks:
+  for bn in bns:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       report += '\n' + bn + ':' + concept + ':' + str(
@@ -451,13 +475,13 @@ def save_ace_report(cd, accs, scores, address):
             np.std(accs[bn][concept]))
   # Get all CAV accuracies
   report += '\n\t\t\t ---Raw CAV accuracies data---'
-  for bn in cd.bottlenecks:
+  for bn in bns:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       report += '\n' + bn + ':' + concept + ':' + str(
           accs[bn][concept])
   report += '\n\n\t\t\t ---TCAV scores---'
-  for bn in cd.bottlenecks:
+  for bn in bns:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       pvalue = cd.do_statistical_testings(
@@ -466,7 +490,7 @@ def save_ace_report(cd, accs, scores, address):
                                        np.mean(scores[bn][concept]), np.std(scores[bn][concept]), pvalue)
   # Get all TCAV scores
   report += '\n\t\t\t ---Raw TCAV scores data---'
-  for bn in cd.bottlenecks:
+  for bn in bns:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       report += '\n{}:{}:{}'.format(bn, concept, scores[bn][concept])
@@ -531,17 +555,23 @@ def save_ace_report_combined_images(cd, accs, scores, address):
     f.write(report)
 
 
-def save_concepts(cd, concepts_dir):
+def save_concepts(cd, concepts_dir, is_cropped=False, all_bottlenecks=False):
   """Saves discovered concept's images or patches.
 
   Args:
     cd: The ConceptDiscovery instance the concepts of which we want to save
     concepts_dir: The directory to save the concept images
   """
-  for bn in cd.bottlenecks:
+  if all_bottlenecks:
+    bns = ['all']
+  else:
+    bns = cd.bottlenecks
+
+  for bn in bns:
     for concept in cd.dic[bn]['concepts']:
-      patches_dir = os.path.join(concepts_dir, bn + '_' + concept + '_patches')
-      images_dir = os.path.join(concepts_dir, bn + '_' + concept)
+      concept_filename = f'{concept}_cropped' if is_cropped else concept
+      patches_dir = os.path.join(concepts_dir, bn + '_' + concept_filename + '_patches')
+      images_dir = os.path.join(concepts_dir, bn + '_' + concept_filename)
       patches = (np.clip(cd.dic[bn][concept]['patches'], 0, 1) * 256).astype(
           np.uint8)
       images = (np.clip(cd.dic[bn][concept]['images'], 0, 1) * 256).astype(

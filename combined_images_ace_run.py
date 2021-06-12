@@ -110,13 +110,12 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    combined_label = 'jeep_and_bullet_train'
+    combined_label = 'jeep_and_cab'
 
     samples = [
         '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv'
-        '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv'
-        # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv'
+        '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv'
     ]
 
     df = pd.concat([pd.read_csv(sample).iloc[:(args.max_imgs//2),:] for sample in samples])
@@ -146,7 +145,7 @@ if __name__ == '__main__':
     args.target_class = combined_label
     args.label_mapping = {
         'n03594945': 'jeep',
-        'n02917067': 'bullet_train'
+        'n02930766': 'cab'
         # 'n03977966': 'police_van'
     }
 

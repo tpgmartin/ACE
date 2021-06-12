@@ -12,7 +12,7 @@ from tcav import utils
 import tensorflow as tf
 
 import ace_helpers
-from ace import ConceptDiscovery
+from ace_concat_layers import ConceptDiscovery
 import argparse
 
 
@@ -67,16 +67,18 @@ def main(args):
     del cd.image_numbers
     del cd.patches
     # Save discovered concept images (resized and original sized)
-    ace_helpers.save_concepts(cd, discovered_concepts_dir)
+    ace_helpers.save_concepts(cd, discovered_concepts_dir, all_bottlenecks=True)
     # Calculating CAVs and TCAV scores
     cav_accuraciess = cd.cavs(min_acc=0.0)
     scores = cd.tcavs(test=False)
     # Save ACE report <- Skip for now
     ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
-                                    results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
+                                    results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt',
+                                    all_bottlenecks=True)
     # Plot examples of discovered concepts <- Skip for now
-    for bn in cd.bottlenecks:
-        ace_helpers.plot_concepts(cd, bn, args.target_class, 10, address=results_dir)
+    # for bn in cd.bottlenecks:
+    # Plotting for all concatenated bottlenecks
+    ace_helpers.plot_concepts(cd, 'all', args.target_class, 10, address=results_dir)
     # Delete concepts that don't pass statistical testing
     cd.test_and_remove_concepts(scores)
 
@@ -117,11 +119,11 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     samples = [
-        '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/bullet_trainbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/mantisbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/antbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lipstickbaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
+        # '../inm363-individual-project/baseline_prediction_samples/jeepbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/restaurantbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/basketballbaseline_prediction_samples.csv', 
         # '../inm363-individual-project/baseline_prediction_samples/bookshopbaseline_prediction_samples.csv',
@@ -129,11 +131,11 @@ if __name__ == '__main__':
         # '../inm363-individual-project/baseline_prediction_samples/damselflybaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/lotionbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/bubblebaseline_prediction_samples.csv',
-        # '../inm363-individual-project/baseline_prediction_samples/cinemabaseline_prediction_samples.csv',
+        '../inm363-individual-project/baseline_prediction_samples/cinemabaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/ambulancebaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/balloonbaseline_prediction_samples.csv',
         # '../inm363-individual-project/baseline_prediction_samples/cabbaseline_prediction_samples.csv',
-        '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
+        # '../inm363-individual-project/baseline_prediction_samples/police_vanbaseline_prediction_samples.csv'
         # '../inm363-individual-project/baseline_prediction_samples/moving_vanbaseline_prediction_samples.csv'
     ]
 
@@ -162,7 +164,7 @@ if __name__ == '__main__':
         args = parse_arguments(sys.argv[1:])
         # args.model_to_run = 'InceptionV3'
         # args.model_path = './v3_model.h5'
-        # args.bottlenecks = 'mixed6'
+        args.bottlenecks = 'mixed4a,mixed4b,mixed4c'
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
 
