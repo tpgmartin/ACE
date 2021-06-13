@@ -829,21 +829,31 @@ class ConceptDiscovery(object):
     gradients = {}
     class_id = self.model.label_to_id(self.target_class.replace('_', ' '))
     for bn in self.bottlenecks:
+
       if bn == 'all':
-        acts = [[] for _ in range(len(images))]
+        bn_grads = [[] for _ in range(len(images))]
         for bn in self.bottlenecks:
           if bn != 'all':
-            bn_acts = get_acts_from_images(
+            acts = get_acts_from_images(
                 images, self.model, bn)
+
+            bn_grads_vec = np.zeros((acts.shape[0], np.prod(acts.shape[1:])))
+
+            for i in range(len(acts)):
+              bn_grads_vec[i] = self.model.get_gradient(
+                acts[i:i+1], [class_id], bn).reshape(-1)
+
             for i in range(len(images)):
-              acts[i].extend(bn_acts[i])
-        acts = np.asarray(acts)
+              bn_grads[i].extend(bn_grads_vec[i])
+
+        bn_grads = np.asarray(bn_grads)
       else:
         acts = get_acts_from_images(images, self.model, bn)
-      bn_grads = np.zeros((acts.shape[0], np.prod(acts.shape[1:])))
-      for i in range(len(acts)):
-        bn_grads[i] = self.model.get_gradient(
+        bn_grads = np.zeros((acts.shape[0], np.prod(acts.shape[1:])))
+        for i in range(len(acts)):
+          bn_grads[i] = self.model.get_gradient(
             acts[i:i+1], [class_id], bn).reshape(-1)
+
       gradients[bn] = bn_grads
     return gradients
 
