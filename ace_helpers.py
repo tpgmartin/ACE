@@ -298,7 +298,7 @@ def binary_dataset(pos, neg, balanced=True):
   return x, y
 
 
-def plot_concepts(cd, bn, target_class, num=10, address=None, mode='diverse', concepts=None, is_cropped=False):
+def plot_concepts(cd, target_class, num=10, address=None, mode='diverse', concepts=None, is_cropped=False):
   """Plots examples of discovered concepts.
 
   Args:
@@ -316,63 +316,64 @@ def plot_concepts(cd, bn, target_class, num=10, address=None, mode='diverse', co
   Raises:
     ValueError: If the mode is invalid.
   """
-  if concepts is None:
-    concepts = cd.dic[bn]['concepts']
-  elif not isinstance(concepts, list) and not isinstance(concepts, tuple):
-    concepts = [concepts]
-  num_concepts = len(concepts)
-  plt.rcParams['figure.figsize'] = num * 2.1, 4.3 * num_concepts
-  fig = plt.figure(figsize=(num * 2, 4 * num_concepts))
-  outer = gridspec.GridSpec(num_concepts, 1, wspace=0., hspace=0.3)
-  for n, concept in enumerate(concepts):
-    inner = gridspec.GridSpecFromSubplotSpec(
-        2, num, subplot_spec=outer[n], wspace=0, hspace=0.1)
-    concept_images = cd.dic[bn][concept]['images']
-    concept_patches = cd.dic[bn][concept]['patches']
-    concept_image_numbers = cd.dic[bn][concept]['image_numbers']
-    if mode == 'max':
-      idxs = np.arange(len(concept_images))
-    elif mode == 'random':
-      idxs = np.random.permutation(np.arange(len(concept_images)))
-    elif mode == 'diverse':
-      idxs = []
-      while True:
-        seen = set()
-        for idx in range(len(concept_images)):
-          if concept_image_numbers[idx] not in seen and idx not in idxs:
-            seen.add(concept_image_numbers[idx])
-            idxs.append(idx)
-        if len(idxs) == len(concept_images):
-          break
-    else:
-      raise ValueError('Invalid mode!')
-    idxs = idxs[:num]
-    for i, idx in enumerate(idxs):
-      ax = plt.Subplot(fig, inner[i])
-      ax.imshow(concept_images[idx])
-      ax.set_xticks([])
-      ax.set_yticks([])
-      if i == int(num / 2):
-        ax.set_title(concept)
-      ax.grid(False)
-      fig.add_subplot(ax)
-      ax = plt.Subplot(fig, inner[i + num])
-      mask = 1 - (np.mean(concept_patches[idx] == float(
-          cd.average_image_value) / 255, -1) == 1)
-      image = cd.discovery_images[concept_image_numbers[idx]]
-      ax.imshow(mark_boundaries(image, mask, color=(1, 1, 0), mode='thick'))
-      ax.set_xticks([])
-      ax.set_yticks([])
-      ax.set_title(str(concept_image_numbers[idx]))
-      ax.grid(False)
-      fig.add_subplot(ax)
-  plt.suptitle(bn)
-  if address is not None:
-    target_class_filename = f'{target_class}_cropped' if is_cropped else target_class
-    with tf.gfile.Open(address +  bn + '_' + target_class_filename + '.png', 'w') as f:
-      fig.savefig(f)
-    plt.clf()
-    plt.close(fig)
+  for bn in cd.bottlenecks:
+    if concepts is None:
+      concepts = cd.dic[bn]['concepts']
+    elif not isinstance(concepts, list) and not isinstance(concepts, tuple):
+      concepts = [concepts]
+    num_concepts = len(concepts)
+    plt.rcParams['figure.figsize'] = num * 2.1, 4.3 * num_concepts
+    fig = plt.figure(figsize=(num * 2, 4 * num_concepts))
+    outer = gridspec.GridSpec(num_concepts, 1, wspace=0., hspace=0.3)
+    for n, concept in enumerate(concepts):
+      inner = gridspec.GridSpecFromSubplotSpec(
+          2, num, subplot_spec=outer[n], wspace=0, hspace=0.1)
+      concept_images = cd.dic[bn][concept]['images']
+      concept_patches = cd.dic[bn][concept]['patches']
+      concept_image_numbers = cd.dic[bn][concept]['image_numbers']
+      if mode == 'max':
+        idxs = np.arange(len(concept_images))
+      elif mode == 'random':
+        idxs = np.random.permutation(np.arange(len(concept_images)))
+      elif mode == 'diverse':
+        idxs = []
+        while True:
+          seen = set()
+          for idx in range(len(concept_images)):
+            if concept_image_numbers[idx] not in seen and idx not in idxs:
+              seen.add(concept_image_numbers[idx])
+              idxs.append(idx)
+          if len(idxs) == len(concept_images):
+            break
+      else:
+        raise ValueError('Invalid mode!')
+      idxs = idxs[:num]
+      for i, idx in enumerate(idxs):
+        ax = plt.Subplot(fig, inner[i])
+        ax.imshow(concept_images[idx])
+        ax.set_xticks([])
+        ax.set_yticks([])
+        if i == int(num / 2):
+          ax.set_title(concept)
+        ax.grid(False)
+        fig.add_subplot(ax)
+        ax = plt.Subplot(fig, inner[i + num])
+        mask = 1 - (np.mean(concept_patches[idx] == float(
+            cd.average_image_value) / 255, -1) == 1)
+        image = cd.discovery_images[concept_image_numbers[idx]]
+        ax.imshow(mark_boundaries(image, mask, color=(1, 1, 0), mode='thick'))
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_title(str(concept_image_numbers[idx]))
+        ax.grid(False)
+        fig.add_subplot(ax)
+    plt.suptitle(bn)
+    if address is not None:
+      target_class_filename = f'{target_class}_cropped' if is_cropped else target_class
+      with tf.gfile.Open(address +  bn + '_' + target_class_filename + '.png', 'w') as f:
+        fig.savefig(f)
+      plt.clf()
+      plt.close(fig)
 
 
 def cosine_similarity(a, b):
@@ -449,7 +450,7 @@ def similarity(cd, num_random_exp=None, num_workers=25):
         similarity_dic[bn][pair].append(sim[pair])
   return similarity_dic
 
-def save_ace_report(cd, accs, scores, address, all_bottlenecks=False):
+def save_ace_report(cd, accs, scores, address):
   """Saves TCAV scores.
   Saves the average CAV accuracies and average TCAV scores of the concepts
   discovered in ConceptDiscovery instance.
@@ -461,13 +462,8 @@ def save_ace_report(cd, accs, scores, address, all_bottlenecks=False):
       ConceptDiscovery instance
     address: The address to save the text file in.
   """
-  if all_bottlenecks:
-    bns = ['all']
-  else:
-    bns = cd.bottlenecks
-
   report = '\n\n\t\t\t ---CAV accuracies---'
-  for bn in bns:
+  for bn in cd.bottlenecks:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       report += '\n' + bn + ':' + concept + ':' + str(
@@ -475,13 +471,13 @@ def save_ace_report(cd, accs, scores, address, all_bottlenecks=False):
             np.std(accs[bn][concept]))
   # Get all CAV accuracies
   report += '\n\t\t\t ---Raw CAV accuracies data---'
-  for bn in bns:
+  for bn in cd.bottlenecks:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       report += '\n' + bn + ':' + concept + ':' + str(
           accs[bn][concept])
   report += '\n\n\t\t\t ---TCAV scores---'
-  for bn in bns:
+  for bn in cd.bottlenecks:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       pvalue = cd.do_statistical_testings(
@@ -490,10 +486,11 @@ def save_ace_report(cd, accs, scores, address, all_bottlenecks=False):
                                        np.mean(scores[bn][concept]), np.std(scores[bn][concept]), pvalue)
   # Get all TCAV scores
   report += '\n\t\t\t ---Raw TCAV scores data---'
-  for bn in bns:
+  for bn in cd.bottlenecks:
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       report += '\n{}:{}:{}'.format(bn, concept, scores[bn][concept])
+  address = f'{bn}_{address}'
   with tf.gfile.Open(address, 'w') as f:
     f.write(report)
 
@@ -555,19 +552,14 @@ def save_ace_report_combined_images(cd, accs, scores, address):
     f.write(report)
 
 
-def save_concepts(cd, concepts_dir, is_cropped=False, all_bottlenecks=False):
+def save_concepts(cd, concepts_dir, is_cropped=False):
   """Saves discovered concept's images or patches.
 
   Args:
     cd: The ConceptDiscovery instance the concepts of which we want to save
     concepts_dir: The directory to save the concept images
   """
-  if all_bottlenecks:
-    bns = ['all']
-  else:
-    bns = cd.bottlenecks
-
-  for bn in bns:
+  for bn in cd.bottlenecks:
     for concept in cd.dic[bn]['concepts']:
       concept_filename = f'{concept}_cropped' if is_cropped else concept
       patches_dir = os.path.join(concepts_dir, bn + '_' + concept_filename + '_patches')

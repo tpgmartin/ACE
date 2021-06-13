@@ -68,18 +68,17 @@ def main(args):
     del cd.image_numbers
     del cd.patches
     # Save discovered concept images (resized and original sized)
-    ace_helpers.save_concepts(cd, discovered_concepts_dir, all_bottlenecks=True)
+    ace_helpers.save_concepts(cd, discovered_concepts_dir)
     # Calculating CAVs and TCAV scores
     cav_accuraciess = cd.cavs(min_acc=0.0)
     scores = cd.tcavs(test=False)
     # Save ACE report <- Skip for now
     ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
-                                    results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt',
-                                    all_bottlenecks=True)
+                                    results_summaries_dir + f'{args.target_class}_ace_results.txt')
     # Plot examples of discovered concepts <- Skip for now
     # for bn in cd.bottlenecks:
     # Plotting for all concatenated bottlenecks
-    ace_helpers.plot_concepts(cd, 'all', args.target_class, 10, address=results_dir)
+    ace_helpers.plot_concepts(cd, args.target_class, 10, address=results_dir)
     # Delete concepts that don't pass statistical testing
     cd.test_and_remove_concepts(scores)
 
