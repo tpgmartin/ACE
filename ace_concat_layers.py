@@ -125,40 +125,40 @@ class ConceptDiscovery(object):
         shape=(self.image_shape),
         num_workers=self.num_workers)
 
-  # def get_activations(self, discovery_images=None, activations=None, param_dict=None):
+  def get_activations(self, discovery_images=None, activations=None, param_dict=None):
 
-  #   if param_dict is None:
-  #     param_dict = {}
+    if param_dict is None:
+      param_dict = {}
 
-  #   if discovery_images is None:
-  #     raw_imgs, final_filenames = self.load_concept_imgs(
-  #         self.target_class, self.num_discovery_imgs, True)
-  #     self.discovery_images = raw_imgs
+    if discovery_images is None:
+      raw_imgs, final_filenames = self.load_concept_imgs(
+          self.target_class, self.num_discovery_imgs, True)
+      self.discovery_images = raw_imgs
 
-  #   for bn in self.bottlenecks:
-  #     bn_dic = {}
-  #     if activations is None or bn not in activations.keys():
-  #       bn_activations = self._patch_activations(self.discovery_images, bn)
+    for bn in self.bottlenecks:
+      bn_dic = {}
+      if activations is None or bn not in activations.keys():
+        bn_activations = self._patch_activations(self.discovery_images, bn)
 
-  #   return bn_activations, final_filenames
+    return bn_activations, final_filenames
 
-  # def get_random_activations(self, discovery_images=None, activations=None, param_dict=None):
+  def get_random_activations(self, discovery_images=None, activations=None, param_dict=None):
 
-  #   if param_dict is None:
-  #     param_dict = {}
+    if param_dict is None:
+      param_dict = {}
 
-  #   if discovery_images is None:
-  #     # TODO: Want to match image data to image filename
-  #     raw_imgs, final_filenames = self.load_concept_imgs(
-  #         self.random_concept, self.num_discovery_imgs, True)
-  #     self.discovery_images = raw_imgs
+    if discovery_images is None:
+      # TODO: Want to match image data to image filename
+      raw_imgs, final_filenames = self.load_concept_imgs(
+          self.random_concept, self.num_discovery_imgs, True)
+      self.discovery_images = raw_imgs
 
-  #   for bn in self.bottlenecks:
-  #     bn_dic = {}
-  #     if activations is None or bn not in activations.keys():
-  #       bn_activations = self._patch_activations(self.discovery_images, bn)
+    for bn in self.bottlenecks:
+      bn_dic = {}
+      if activations is None or bn not in activations.keys():
+        bn_activations = self._patch_activations(self.discovery_images, bn)
 
-  #   return bn_activations, final_filenames
+    return bn_activations, final_filenames
 
   # Process heatmap images - only want to crop and resize images like
   # `./net_occlusion_heatmaps_delta_prob/n09229709/n09229709_28418/mask_dim_100/n09229709_28418_image_cropped_to_mask/n09229709_28418_image_cropped_to_mask.JPEG`
@@ -513,92 +513,87 @@ class ConceptDiscovery(object):
 
     report = '---- Concept Discovery Report ----\n\n'
 
-    concat_bn_activations = [[] for _ in range(len(self.dataset))]
     for bn in self.bottlenecks:
       bn_dic = {}
-      if activations is None or bn not in activations.keys():
+      if bn == 'all':
+        bn_dic['activations'] = [[] for _ in range(len(self.dataset))]
+        for bn in self.bottlenecks:
+          if bn != 'all':
+            for i in range(len(self.dataset)):
+              bn_dic['activations'][i].extend(self.dic[bn]['activations'][i])
+      elif activations is None or bn not in activations.keys():
         print('Calling _patch_activations >>>>>>>>>>')
         bn_activations = self._patch_activations(self.dataset, bn)
+        bn_dic['activations'] = bn_activations
       else:
         # print("activations:", activations)
         bn_activations = activations[bn]
-      
-      for i in range(len(self.dataset)):
-        concat_bn_activations[i].extend(bn_activations[i])
+      bn_dic['label'], bn_dic['cost'], centers = self._cluster(
+          bn_activations, method, param_dicts[bn])
+      # print("bn_dic['label']:", bn_dic['label'])
+      # print("bn_dic['cost']:", bn_dic['cost'])
+      concept_number, bn_dic['concepts'] = 0, []
+      for i in range(bn_dic['label'].max() + 1):
+        print('label:', i)
+        label_idxs = np.where(bn_dic['label'] == i)[0]
+        if len(label_idxs) > self.min_imgs:
+          concept_costs = bn_dic['cost'][label_idxs]
+          concept_idxs = label_idxs[np.argsort(concept_costs)[:self.max_imgs]]
+          concept_image_numbers = set(self.image_numbers[label_idxs])
+          discovery_size = len(self.discovery_images)
+          highly_common_concept = len(
+              concept_image_numbers) > 0.5 * len(label_idxs)
+          mildly_common_concept = len(
+              concept_image_numbers) > 0.25 * len(label_idxs)
+          mildly_populated_concept = len(
+              concept_image_numbers) > 0.25 * discovery_size
+          cond2 = mildly_populated_concept and mildly_common_concept
+          non_common_concept = len(
+              concept_image_numbers) > 0.1 * len(label_idxs)
+          highly_populated_concept = len(
+              concept_image_numbers) > 0.5 * discovery_size
+          cond3 = non_common_concept and highly_populated_concept
 
-    
-    print('concat_bn_activations------')
-    print(len(concat_bn_activations))
-    print(len(concat_bn_activations[0]))
-    print('---------------------------')
-    
-    # override param_dicts to have bottleneck correspond key corresponding to all 
-    param_dicts = {'all': {}}
+          report += f'label: {i}\n'
+          report += 'Prerequisites:\n'
+          report += f'len(concept_image_numbers): {len(concept_image_numbers)}\n'
+          report += f'len(label_idxs): {len(label_idxs)}\n'
+          report += f'discovery_size: {discovery_size}\n\n'
+          report += 'Conditions:\n'
+          report += f'highly_common_concept: {highly_common_concept}\n'
+          report += f'mildly_populated_concept: {mildly_populated_concept}\n'
+          report += f'mildly_common_concept: {mildly_common_concept}\n'
+          report += f'mildly_populated_concept and mildly_common_concept: {cond2}\n'
+          report += f'non_common_concept: {non_common_concept}\n'
+          report += f'highly_populated_concept: {highly_populated_concept}\n'
+          report += f'non_common_concept and highly_populated_concept: {cond3}\n'
+          report += f'concept_is_acceptable: {(highly_common_concept or cond2 or cond3)}\n\n'
 
-    # cluster on all layers
-    bn_dic['label'], bn_dic['cost'], centers = self._cluster(
-        concat_bn_activations, method, param_dicts['all'])
-    # print("bn_dic['label']:", bn_dic['label'])
-    # print("bn_dic['cost']:", bn_dic['cost'])
-    concept_number, bn_dic['concepts'] = 0, []
-    for i in range(bn_dic['label'].max() + 1):
-      print('label:', i)
-      label_idxs = np.where(bn_dic['label'] == i)[0]
-      if len(label_idxs) > self.min_imgs:
-        concept_costs = bn_dic['cost'][label_idxs]
-        concept_idxs = label_idxs[np.argsort(concept_costs)[:self.max_imgs]]
-        concept_image_numbers = set(self.image_numbers[label_idxs])
-        discovery_size = len(self.discovery_images)
-        highly_common_concept = len(
-            concept_image_numbers) > 0.5 * len(label_idxs)
-        mildly_common_concept = len(
-            concept_image_numbers) > 0.25 * len(label_idxs)
-        mildly_populated_concept = len(
-            concept_image_numbers) > 0.25 * discovery_size
-        cond2 = mildly_populated_concept and mildly_common_concept
-        non_common_concept = len(
-            concept_image_numbers) > 0.1 * len(label_idxs)
-        highly_populated_concept = len(
-            concept_image_numbers) > 0.5 * discovery_size
-        cond3 = non_common_concept and highly_populated_concept
+          if highly_common_concept or cond2 or cond3:
+            concept_number += 1
+            concept = '{}_concept{}'.format(self.target_class, concept_number)
+            bn_dic['concepts'].append(concept)
+            bn_dic[concept] = {
+                'images': self.dataset[concept_idxs],
+                'patches': self.patches[concept_idxs],
+                'image_numbers': self.image_numbers[concept_idxs]
+            }
+            bn_dic[concept + '_center'] = centers[i]
 
-        report += f'label: {i}\n'
-        report += 'Prerequisites:\n'
-        report += f'len(concept_image_numbers): {len(concept_image_numbers)}\n'
-        report += f'len(label_idxs): {len(label_idxs)}\n'
-        report += f'discovery_size: {discovery_size}\n\n'
-        report += 'Conditions:\n'
-        report += f'highly_common_concept: {highly_common_concept}\n'
-        report += f'mildly_populated_concept: {mildly_populated_concept}\n'
-        report += f'mildly_common_concept: {mildly_common_concept}\n'
-        report += f'mildly_populated_concept and mildly_common_concept: {cond2}\n'
-        report += f'non_common_concept: {non_common_concept}\n'
-        report += f'highly_populated_concept: {highly_populated_concept}\n'
-        report += f'non_common_concept and highly_populated_concept: {cond3}\n'
-        report += f'concept_is_acceptable: {(highly_common_concept or cond2 or cond3)}\n\n'
+            report += f'concept: {concept}\n'
+            report += f'image_numbers: {self.image_numbers[concept_idxs]}\n'
 
-        if highly_common_concept or cond2 or cond3:
-          concept_number += 1
-          concept = '{}_concept{}'.format(self.target_class, concept_number)
-          bn_dic['concepts'].append(concept)
-          bn_dic[concept] = {
-              'images': self.dataset[concept_idxs],
-              'patches': self.patches[concept_idxs],
-              'image_numbers': self.image_numbers[concept_idxs]
-          }
-          bn_dic[concept + '_center'] = centers[i]
+          report += '\n\n'
+      bn_dic.pop('label', None)
+      bn_dic.pop('cost', None)
+      self.dic[bn] = bn_dic
 
-          report += f'concept: {concept}\n'
-          report += f'image_numbers: {self.image_numbers[concept_idxs]}\n'
+      # concatenate bns here and add to bn_dic
+      # bn_dic
 
-        report += '\n\n'
-    bn_dic.pop('label', None)
-    bn_dic.pop('cost', None)
-    self.dic['all'] = bn_dic
-
-    address = f'./ACE/concept_discovery_results/mixed_8_{self.target_class}_results.txt'
-    with tf.gfile.Open(address, 'w') as f:
-      f.write(report)
+      address = f'./ACE/concept_discovery_results/mixed_8_{self.target_class}_results.txt'
+      with tf.gfile.Open(address, 'w') as f:
+        f.write(report)
 
   def _random_concept_activations(self, bottleneck, random_concept):
     """Wrapper for computing or loading activations of random concepts.
@@ -616,19 +611,24 @@ class ConceptDiscovery(object):
         random_concept, bottleneck))
     if not tf.gfile.Exists(rnd_acts_path):
       rnd_imgs = self.load_concept_imgs(random_concept, self.max_imgs)
-      # TODO: concatenate activation for all layers
 
       if bottleneck == 'all':
-        acts = [[] for _ in range(len(rnd_imgs))]
+        acts = [[] for _ in range(self.max_imgs)]
         for bottleneck in self.bottlenecks:
-          bn_acts = get_acts_from_images(
-              rnd_imgs, self.model, bottleneck)
+          if bottleneck != 'all':
+            bn_acts = get_acts_from_images(
+                rnd_imgs, self.model, bottleneck)
 
-          for i in range(len(rnd_imgs)):
-            acts[i].extend(bn_acts[i])
+            for i in range(self.max_imgs):
+              acts[i].extend(bn_acts[i])
+        acts = np.asarray(acts)
       else:
         acts = get_acts_from_images(rnd_imgs, self.model, bottleneck)
 
+      print('_random_concept_activations')
+      print(len(acts))
+      print(len(acts[0]))
+      print('---------------------------')
       with tf.gfile.Open(rnd_acts_path, 'w') as f:
         np.save(f, acts, allow_pickle=False)
       del acts
@@ -651,7 +651,6 @@ class ConceptDiscovery(object):
     """
     if directory is None:
       directory = self.cav_dir
-
     act_r = self._random_concept_activations(bn, r)
     cav_instance = cav.get_or_train_cav([c, r],
                                         bn, {
@@ -725,40 +724,65 @@ class ConceptDiscovery(object):
     # print(self.dic)
     acc = {bn: {} for bn in self.bottlenecks}
     concepts_to_delete = []
-    # for bn in self.bottlenecks:
-    for concept in self.dic['all']['concepts']:
-      concept_imgs = self.dic['all'][concept]['images']
+    for bn in self.bottlenecks:
+      for concept in self.dic[bn]['concepts']:
+        concept_imgs = self.dic[bn][concept]['images']
 
-      # Can concatenate returned arrays
-      concat_bn_activations = [[] for _ in range(len(concept_imgs))]
-      for bn in self.bottlenecks:
-        bn_concept_acts = get_acts_from_images(
+        if bn == 'all':
+          # Can concatenate returned arrays
+          concept_acts = [[] for _ in range(len(concept_imgs))]
+          for bn in self.bottlenecks:
+            if bn != 'all':
+              bn_concept_acts = get_acts_from_images(
+                  concept_imgs, self.model, bn)
+
+              for i in range(len(concept_imgs)):
+                concept_acts[i].extend(bn_concept_acts[i])
+
+          concept_acts = np.asarray(concept_acts)
+        else:
+          concept_acts = get_acts_from_images(
             concept_imgs, self.model, bn)
 
-        for i in range(len(concept_imgs)):
-          concat_bn_activations[i].extend(bn_concept_acts[i])
+        acc[bn][concept] = self._concept_cavs(bn, concept, concept_acts, ow=ow)
+        if np.mean(acc[bn][concept]) < min_acc:
+          concepts_to_delete.append((bn, concept))
 
-      acc['all'][concept] = self._concept_cavs('all', concept, concat_bn_activations, ow=ow)
-      if np.mean(acc['all'][concept]) < min_acc:
-        concepts_to_delete.append(('all', concept))
+        if bn == 'all':
+          target_class_acts = [[] for _ in range(len(self.discovery_images))]
+          for bn in self.bottlenecks:
+            if bn != 'all':
+              bn_concept_acts = get_acts_from_images(
+                  self.discovery_images, self.model, bn)
 
-    concat_bn_activations = [[] for _ in range(len(self.discover_concepts))]
-    for bn in self.bottlenecks:
-      target_class_acts = get_acts_from_images(
-          self.discover_concepts, self.model, bn)
+              for i in range(len(self.discovery_images)):
+                target_class_acts[i].extend(bn_concept_acts[i])
 
-      for i in range(len(self.discovery_images)):
-        concat_bn_activations[i].extend(target_class_acts[i])
+          target_class_acts = np.asarray(target_class_acts)
+        else:
+          target_class_acts = get_acts_from_images(
+              self.discovery_images, self.model, bn)
 
-    acc['all'][self.target_class] = self._concept_cavs(
-        'all', self.target_class, target_class_acts, ow=ow)
+        acc[bn][self.target_class] = self._concept_cavs(
+          bn, self.target_class, target_class_acts, ow=ow)
 
-    rnd_acts = self._random_concept_activations(bn, self.random_concept)
-    acc['all'][self.random_concept] = self._concept_cavs(
-        'all', self.random_concept, rnd_acts, ow=ow)
+        # if bn == 'all':
+        #   rnd_acts = [[] for _ in range(len(self.random_concept))]
+        #   for bn in self.bottlenecks:
+        #     bn_concept_acts = self._random_concept_activations(
+        #         bn, self.random_concept)
 
-    for _, concept in concepts_to_delete:
-      self.delete_concept('all', concept)
+        #     for i in range(len(self.random_concept)):
+        #       rnd_acts[i].extend(target_class_acts[i])
+        # else:
+        #   rnd_acts = self._random_concept_activations(bn, self.random_concept)
+        rnd_acts = self._random_concept_activations(bn, self.random_concept)
+
+        acc[bn][self.random_concept] = self._concept_cavs(
+          bn, self.random_concept, rnd_acts, ow=ow)
+
+    for bn, concept in concepts_to_delete:
+      self.delete_concept(bn, concept)
 
     return acc
 
@@ -805,7 +829,17 @@ class ConceptDiscovery(object):
     gradients = {}
     class_id = self.model.label_to_id(self.target_class.replace('_', ' '))
     for bn in self.bottlenecks:
-      acts = get_acts_from_images(images, self.model, bn)
+      if bn == 'all':
+        acts = [[] for _ in range(len(images))]
+        for bn in self.bottlenecks:
+          if bn != 'all':
+            bn_acts = get_acts_from_images(
+                images, self.model, bn)
+            for i in range(len(images)):
+              acts[i].extend(bn_acts[i])
+        acts = np.asarray(acts)
+      else:
+        acts = get_acts_from_images(images, self.model, bn)
       bn_grads = np.zeros((acts.shape[0], np.prod(acts.shape[1:])))
       for i in range(len(acts)):
         bn_grads[i] = self.model.get_gradient(

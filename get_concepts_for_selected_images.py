@@ -13,6 +13,7 @@ import tensorflow as tf
 
 import ace_helpers
 from ace_concat_layers import ConceptDiscovery
+# from ace import ConceptDiscovery
 import argparse
 
 
@@ -164,7 +165,7 @@ if __name__ == '__main__':
         args = parse_arguments(sys.argv[1:])
         # args.model_to_run = 'InceptionV3'
         # args.model_path = './v3_model.h5'
-        args.bottlenecks = 'mixed4a,mixed4b,mixed4c'
+        args.bottlenecks = 'mixed4a,all'
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
 
