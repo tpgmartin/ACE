@@ -74,7 +74,7 @@ def main(args):
     scores = cd.tcavs(test=False)
     # Save ACE report <- Skip for now
     ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
-                                    results_summaries_dir + f'{args.target_class}_ace_results.txt')
+                                    results_summaries_dir + f'all_layers_{args.target_class}_ace_results.txt')
     # Plot examples of discovered concepts <- Skip for now
     # for bn in cd.bottlenecks:
     # Plotting for all concatenated bottlenecks
@@ -164,7 +164,7 @@ if __name__ == '__main__':
         args = parse_arguments(sys.argv[1:])
         # args.model_to_run = 'InceptionV3'
         # args.model_path = './v3_model.h5'
-        args.bottlenecks = 'mixed4a,all'
+        args.bottlenecks = 'mixed4c'
         args.source_dir = sample_dir_path
         args.target_class = sample.split('/')[-1].split('baseline')[0]
 

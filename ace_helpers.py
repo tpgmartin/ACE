@@ -490,7 +490,6 @@ def save_ace_report(cd, accs, scores, address):
     report += '\n'
     for concept in cd.dic[bn]['concepts']:
       report += '\n{}:{}:{}'.format(bn, concept, scores[bn][concept])
-  address = f'{bn}_{address}'
   with tf.gfile.Open(address, 'w') as f:
     f.write(report)
 

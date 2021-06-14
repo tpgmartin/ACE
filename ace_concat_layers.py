@@ -652,6 +652,16 @@ class ConceptDiscovery(object):
     if directory is None:
       directory = self.cav_dir
     act_r = self._random_concept_activations(bn, r)
+
+    print('_calculate_cav')
+    print(c)
+    print(r)
+    print(len(act_c))
+    print(len(act_c[0]))
+    print(len(act_r))
+    print(len(act_r[0]))
+    print('--------------')
+
     cav_instance = cav.get_or_train_cav([c, r],
                                         bn, {
                                             c: {
