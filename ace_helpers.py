@@ -375,6 +375,33 @@ def plot_concepts(cd, target_class, num=10, address=None, mode='diverse', concep
       plt.clf()
       plt.close(fig)
 
+def save_patch_masks(cd, target_class, address=None, concepts=None):
+
+  for bn in cd.bottlenecks:
+
+    if concepts is None:
+      concepts = cd.dic[bn]['concepts']
+    elif not isinstance(concepts, list) and not isinstance(concepts, tuple):
+      concepts = [concepts]
+
+    for n, concept in enumerate(concepts):
+
+      print(n)
+      print(concept)
+      concept_patches = cd.dic[bn][concept]['patches']
+      image_numbers = cd.dic[bn][concept]['image_numbers']
+      idxs = np.arange(len(concept_patches))
+
+      for i, idx in enumerate(idxs):
+
+        mask = 1 - (np.mean(concept_patches[idx] == float(
+            cd.average_image_value) / 255, -1) == 1)
+
+        if address is not None:
+          mask_dir = f'{address}/{bn}_{target_class}_{concept}_masks'
+          os.makedirs(mask_dir, exist_ok=True)
+          mask_filepath = f'{mask_dir}/{i}_{image_numbers[idx]}.npy'
+          np.save(mask_filepath, mask, allow_pickle=False)
 
 def cosine_similarity(a, b):
   """Cosine similarity of two vectors."""

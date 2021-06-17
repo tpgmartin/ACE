@@ -12,8 +12,8 @@ from tcav import utils
 import tensorflow as tf
 
 import ace_helpers
-from ace_concat_layers import ConceptDiscovery
-# from ace import ConceptDiscovery
+# from ace_concat_layers import ConceptDiscovery
+from ace import ConceptDiscovery
 import argparse
 
 
@@ -21,6 +21,7 @@ def main(args):
 
     ###### related DIRs on CNS to store results #######
     discovered_concepts_dir = os.path.join(args.working_dir, 'concepts/')
+    masks_dir = os.path.join(args.working_dir, 'masks/')
     results_dir = os.path.join(args.working_dir, 'results/')
     cavs_dir = os.path.join(args.working_dir, 'cavs/')
     activations_dir = os.path.join(args.working_dir, 'acts/')
@@ -79,6 +80,8 @@ def main(args):
     # for bn in cd.bottlenecks:
     # Plotting for all concatenated bottlenecks
     ace_helpers.plot_concepts(cd, args.target_class, 10, address=results_dir)
+    # Save masks
+    ace_helpers.save_patch_masks(cd, args.target_class, address=masks_dir)
     # Delete concepts that don't pass statistical testing
     cd.test_and_remove_concepts(scores)
 
