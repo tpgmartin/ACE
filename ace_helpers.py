@@ -606,7 +606,7 @@ def save_concepts(cd, concepts_dir, is_cropped=False):
       save_images(image_addresses, images)
 
 
-def save_images(addresses, images):
+def save_images(addresses, images, filenames=None, save_lookup=False):
   """Save images in the addresses.
 
   Args:
@@ -614,16 +614,26 @@ def save_images(addresses, images):
       directory to save all images in. (list or str)
     images: The list of all images in numpy uint8 format.
   """
+  image_names = []
   if not isinstance(addresses, list):
     image_addresses = []
     for i, image in enumerate(images):
       image_name = '0' * (3 - int(np.log10(i + 1))) + str(i + 1) + '.png'
       image_addresses.append(os.path.join(addresses, image_name))
+      image_names.append(image_name)
     addresses = image_addresses
   assert len(addresses) == len(images), 'Invalid number of addresses'
   for address, image in zip(addresses, images):
     with tf.gfile.Open(address, 'w') as f:
       Image.fromarray(image).save(f, format='PNG')
+
+  if save_lookup:
+    image_name_lookup = pd.DataFrame({
+      'image_name': image_names,
+      'image_filename': filenames
+    })
+    lookup_path = '/'.join(addresses[0].split('/')[:-1])
+    image_name_lookup.to_csv(f'{lookup_path}/image_name_lookup.csv', index=False)
 
 def save_images_lookup(images, target_class, label_mapping):
 

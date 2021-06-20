@@ -62,7 +62,7 @@ def main(args):
     image_dir = os.path.join(discovered_concepts_dir, 'images', args.target_class)
     tf.gfile.MakeDirs(image_dir)
     ace_helpers.save_images(image_dir,
-                            (cd.discovery_images * 256).astype(np.uint8))
+                            (cd.discovery_images * 256).astype(np.uint8), cd.discovery_image_filenames, save_lookup=True)
     # Discovering Concepts
     cd.discover_concepts(method='KM', param_dicts={'n_clusters': 25})
     del cd.dataset  # Free memory
