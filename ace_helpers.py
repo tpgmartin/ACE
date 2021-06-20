@@ -386,8 +386,8 @@ def save_patch_masks(cd, target_class, address=None, concepts=None):
 
     for n, concept in enumerate(concepts):
 
-      print(n)
-      print(concept)
+      mask_dir = f'{address}/{bn}_{target_class}_{concept}_masks'
+      os.makedirs(mask_dir, exist_ok=True)
       concept_patches = cd.dic[bn][concept]['patches']
       image_numbers = cd.dic[bn][concept]['image_numbers']
       idxs = np.arange(len(concept_patches))
@@ -396,12 +396,11 @@ def save_patch_masks(cd, target_class, address=None, concepts=None):
 
         mask = 1 - (np.mean(concept_patches[idx] == float(
             cd.average_image_value) / 255, -1) == 1)
-
-        if address is not None:
-          mask_dir = f'{address}/{bn}_{target_class}_{concept}_masks'
-          os.makedirs(mask_dir, exist_ok=True)
-          mask_filepath = f'{mask_dir}/{i}_{image_numbers[idx]}.npy'
-          np.save(mask_filepath, mask, allow_pickle=False)
+        # TODO: Update patches: are save as e.g.  0_38.npy
+        mask_name = '0' * int(np.ceil(2 - np.log10(i + 1))) + '{}_{}'.format(
+            i + 1, image_numbers[idx])
+        mask_filepath = f'{mask_dir}/{mask_name}.npy'
+        np.save(mask_filepath, mask, allow_pickle=False)
 
 def cosine_similarity(a, b):
   """Cosine similarity of two vectors."""

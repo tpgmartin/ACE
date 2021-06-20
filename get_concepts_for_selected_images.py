@@ -75,7 +75,7 @@ def main(args):
     scores = cd.tcavs(test=False)
     # Save ACE report <- Skip for now
     ace_helpers.save_ace_report(cd, cav_accuraciess, scores,
-                                    results_summaries_dir + f'all_layers_{args.target_class}_ace_results.txt')
+                                    results_summaries_dir + f'{args.bottlenecks}_{args.target_class}_ace_results.txt')
     # Plot examples of discovered concepts <- Skip for now
     # for bn in cd.bottlenecks:
     # Plotting for all concatenated bottlenecks
